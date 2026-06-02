@@ -319,38 +319,55 @@
   .modal iframe { flex: 1; border: 0; width: 100%; background: white; }
   /* simulated Affirm checkout screen */
   .modal .affirm-mock {
-    flex: 1; overflow: auto; background: #fff; padding: 26px 26px 22px;
-    display: flex; flex-direction: column; gap: 15px;
+    flex: 1; overflow: auto; background: #fff;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
-  .afm-logo { font-size: 30px; font-weight: 800; color: #0A0A0A; letter-spacing: -.5px; }
-  .afm-amount { text-align: center; padding: 4px 0 2px; }
-  .afm-amount-label { color: var(--muted); font-size: 12px; }
-  .afm-amount-val { font-size: 34px; font-weight: 800; color: #0A0A0A; }
-  .afm-plan { display: flex; flex-direction: column; gap: 10px; margin-top: 2px; }
+  .afm-screen { padding: 26px 26px 22px; display: flex; flex-direction: column; gap: 13px; min-height: 100%; box-sizing: border-box; }
+  .afm-screen.hidden { display: none; }
+  .afm-head { display: flex; align-items: center; justify-content: space-between; }
+  .afm-logo { font-size: 27px; font-weight: 800; color: #101820; letter-spacing: -.5px; }
+  .afm-h { font-size: 20px; font-weight: 800; color: #101820; margin: 8px 0 0; }
+  .afm-p { font-size: 13px; color: var(--muted); margin: 0; line-height: 1.5; }
+  .afm-p b { color: var(--text); }
+  .afm-code { display: flex; gap: 8px; margin-top: 6px; }
+  .afm-code span {
+    flex: 1; height: 52px; border: 1.5px solid var(--border); border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; color: #101820;
+  }
+  .afm-code span.filled { border-color: var(--affirm-accent); }
+  .afm-resend { font-size: 12px; color: var(--muted); }
+  .afm-resend a { color: var(--affirm-accent); font-weight: 600; }
+  .afm-verified {
+    font-size: 11px; font-weight: 700; color: var(--success); background: #EAF7F0;
+    border: 1px solid #BFE6D2; padding: 3px 10px; border-radius: 999px;
+  }
+  .afm-merchant { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .afm-amount-val { font-size: 36px; font-weight: 800; color: #101820; line-height: 1; }
+  .afm-amount-label { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .afm-section-label { font-size: 12px; font-weight: 700; color: #101820; margin-top: 6px; }
+  .afm-plan { display: flex; flex-direction: column; gap: 10px; }
   .afm-plan-row {
     display: flex; align-items: center; justify-content: space-between;
-    border: 1.5px solid var(--border); border-radius: 12px; padding: 13px 16px;
+    border: 1.5px solid var(--border); border-radius: 12px; padding: 13px 15px; cursor: pointer;
   }
-  .afm-plan-row.afm-selected { border-color: var(--affirm-accent); background: #F4F4FF; }
-  .afm-plan-mo { font-size: 19px; font-weight: 800; color: #0A0A0A; }
-  .afm-plan-mo span { font-size: 13px; font-weight: 600; color: var(--muted); }
+  .afm-plan-row.afm-selected { border-color: var(--affirm-accent); background: #F2F2FE; }
+  .afm-plan-mo { font-size: 18px; font-weight: 800; color: #101820; }
+  .afm-plan-mo span { font-size: 12px; font-weight: 600; color: var(--muted); }
   .afm-plan-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .afm-radio { color: var(--affirm-accent); font-size: 18px; }
-  .afm-radio2 { color: #C8D0DC; font-size: 18px; }
-  .afm-pin { border-top: 1px solid var(--border); padding-top: 15px; }
-  .afm-pin-label { font-size: 13px; color: var(--text); margin-bottom: 10px; }
-  .afm-pin-boxes { display: flex; gap: 8px; }
-  .afm-pin-boxes span {
-    width: 38px; height: 46px; border: 1.5px solid var(--border); border-radius: 8px;
-    display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: #0A0A0A;
-  }
-  .afm-pin-note { font-size: 11px; color: var(--muted); margin-top: 8px; }
+  .afm-radio { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #C8D0DC; position: relative; flex-shrink: 0; }
+  .afm-radio.on { border-color: var(--affirm-accent); }
+  .afm-radio.on::after { content: ''; position: absolute; inset: 3px; border-radius: 50%; background: var(--affirm-accent); }
+  .afm-schedule { border-top: 1px solid var(--border); padding-top: 12px; display: flex; flex-direction: column; gap: 7px; }
+  .afm-sched-row { display: flex; justify-content: space-between; font-size: 13px; }
+  .afm-sched-row .k { color: var(--muted); }
+  .afm-sched-row .v { color: var(--text); font-weight: 600; }
+  .afm-sched-row.total .k, .afm-sched-row.total .v { color: #101820; font-weight: 800; }
+  .afm-sched-row.first .k, .afm-sched-row.first .v { color: var(--affirm-accent); font-weight: 700; }
   .afm-confirm {
-    margin-top: 4px; background: #0A0A0A; color: #fff; border: 0; border-radius: 999px;
-    padding: 14px; font-size: 15px; font-weight: 700; cursor: pointer;
+    margin-top: auto; background: var(--affirm-accent); color: #fff; border: 0; border-radius: 999px;
+    padding: 15px; font-size: 15px; font-weight: 700; cursor: pointer;
   }
-  .afm-confirm:hover { background: #222; }
+  .afm-confirm:hover { background: #3a3ad0; }
   .afm-cancel {
     background: transparent; border: 0; color: var(--muted); font-size: 13px; padding: 2px; cursor: pointer;
   }
@@ -496,35 +513,49 @@
       <button class="close-modal" id="btn-close-modal" title="Close">×</button>
     </div>
     <div class="affirm-mock" id="affirm-mock">
-      <div class="afm-logo">affirm</div>
-      <div class="afm-amount">
-        <div class="afm-amount-label">Total purchase</div>
+      <!-- Step 1: SMS verification -->
+      <div class="afm-screen" id="afm-screen-verify">
+        <div class="afm-logo">affirm</div>
+        <h3 class="afm-h">Let's verify it's you</h3>
+        <p class="afm-p">Enter the code we texted to <b>(•••) •••-3729</b> to continue your purchase with Affirm.</p>
+        <div class="afm-code">
+          <span class="filled">1</span><span class="filled">2</span><span class="filled">3</span><span class="filled">4</span><span class="filled">5</span><span class="filled">6</span>
+        </div>
+        <div class="afm-resend">Didn't get a code? <a>Resend</a></div>
+        <button class="afm-confirm" id="afm-continue">Continue</button>
+        <div class="afm-legal">Sandbox verification — code is prefilled for this demo. No SMS is actually sent.</div>
+      </div>
+
+      <!-- Step 2: review terms & confirm -->
+      <div class="afm-screen hidden" id="afm-screen-terms">
+        <div class="afm-head">
+          <div class="afm-logo">affirm</div>
+          <div class="afm-verified">✓ Verified</div>
+        </div>
         <div class="afm-amount-val">$1,016.18</div>
-      </div>
-      <div class="afm-plan">
-        <div class="afm-plan-row afm-selected">
-          <div>
-            <div class="afm-plan-mo">$85<span>/mo</span></div>
-            <div class="afm-plan-sub">12 months · 15% APR</div>
+        <div class="afm-amount-label">Total purchase at Sam's Club</div>
+        <div class="afm-section-label">Choose how to pay</div>
+        <div class="afm-plan" id="afm-plan">
+          <div class="afm-plan-row afm-selected" data-plan="p12">
+            <div class="afm-plan-left">
+              <div class="afm-plan-mo">$85.00<span>/mo</span></div>
+              <div class="afm-plan-sub">12 months · 15% APR</div>
+            </div>
+            <div class="afm-radio on"></div>
           </div>
-          <div class="afm-radio">●</div>
-        </div>
-        <div class="afm-plan-row">
-          <div>
-            <div class="afm-plan-mo">$170<span>/mo</span></div>
-            <div class="afm-plan-sub">6 months · 0% APR</div>
+          <div class="afm-plan-row" data-plan="p6">
+            <div class="afm-plan-left">
+              <div class="afm-plan-mo">$169.36<span>/mo</span></div>
+              <div class="afm-plan-sub">6 months · 0% APR</div>
+            </div>
+            <div class="afm-radio"></div>
           </div>
-          <div class="afm-radio2">○</div>
         </div>
+        <div class="afm-schedule" id="afm-schedule"></div>
+        <button class="afm-confirm" id="affirm-confirm">Confirm loan</button>
+        <button class="afm-cancel" id="affirm-cancel">Cancel</button>
+        <div class="afm-legal">Your total, APR and payment schedule are shown above. Simulated checkout for demonstration only — no real loan is created and no data is sent anywhere.</div>
       </div>
-      <div class="afm-pin">
-        <div class="afm-pin-label">Enter the code sent to (•••) •••-3729</div>
-        <div class="afm-pin-boxes"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span></div>
-        <div class="afm-pin-note">Sandbox verification — code prefilled for the demo</div>
-      </div>
-      <button class="afm-confirm" id="affirm-confirm">Confirm loan</button>
-      <button class="afm-cancel" id="affirm-cancel">Cancel and go back</button>
-      <div class="afm-legal">By confirming you agree to Affirm's loan terms. This is a simulated checkout for demonstration only — no real loan is created and no data is sent anywhere.</div>
     </div>
     <div class="status-bar">
       <span class="live-dot"></span>
@@ -957,9 +988,45 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 function openModal(url) {
   $('#modal-overlay').classList.remove('hidden');
   $('#modal-url').textContent = url;
+  resetAffirmScreens();
 }
 function closeModal() {
   $('#modal-overlay').classList.add('hidden');
+}
+
+/* Simulated Affirm checkout — two screens (verify → review & confirm). */
+const AFM_PLANS = {
+  p12: { schedule: [
+    ['Total purchase', '$1,016.18'],
+    ['Interest (15% APR)', '$83.82'],
+    ['Total with interest', '$1,100.00', 'total'],
+    ['First payment due Jul 2', '$85.00', 'first']
+  ]},
+  p6: { schedule: [
+    ['Total purchase', '$1,016.18'],
+    ['Interest (0% APR)', '$0.00'],
+    ['Total with interest', '$1,016.18', 'total'],
+    ['First payment due Jul 2', '$169.36', 'first']
+  ]}
+};
+function renderAffirmSchedule(planKey) {
+  const plan = AFM_PLANS[planKey] || AFM_PLANS.p12;
+  $('#afm-schedule').innerHTML = plan.schedule.map(([k, v, cls]) =>
+    `<div class="afm-sched-row ${cls || ''}"><span class="k">${escapeHtml(k)}</span><span class="v">${escapeHtml(v)}</span></div>`).join('');
+}
+function selectAffirmPlan(row) {
+  $$('#afm-plan .afm-plan-row').forEach(r => {
+    const on = r === row;
+    r.classList.toggle('afm-selected', on);
+    r.querySelector('.afm-radio').classList.toggle('on', on);
+  });
+  renderAffirmSchedule(row.dataset.plan);
+}
+function resetAffirmScreens() {
+  $('#afm-screen-verify').classList.remove('hidden');
+  $('#afm-screen-terms').classList.add('hidden');
+  const first = $('#afm-plan .afm-plan-row');
+  if (first) selectAffirmPlan(first);
 }
 function showProcessing() {
   $('#member-status').classList.add('hidden');
@@ -1005,6 +1072,7 @@ window.addEventListener('message', (ev) => {
 function onAffirmConfirmed() {
   if (!state.awaitingUser) return;
   state.awaitingUser = false;
+  closeModal();
   if (state._modalResolver) { state._modalResolver(); state._modalResolver = null; }
   // In manual (paused) mode the playback loop doesn't auto-continue after the
   // awaited modal step resolves, which would leave the sequence stuck on the
@@ -1117,6 +1185,11 @@ $('#btn-apply').addEventListener('click', () => {
 });
 // Closing via the X is treated as a cancel (returns the cancel_url path).
 $('#btn-close-modal').addEventListener('click', () => { onAffirmCancelled(); });
+$('#afm-continue').addEventListener('click', () => {
+  $('#afm-screen-verify').classList.add('hidden');
+  $('#afm-screen-terms').classList.remove('hidden');
+});
+$$('#afm-plan .afm-plan-row').forEach(r => r.addEventListener('click', () => selectAffirmPlan(r)));
 $('#affirm-confirm').addEventListener('click', () => {
   logEvent('user', '👆 Member confirmed the Affirm loan', 'The member accepted Affirm\'s terms in the embedded checkout (happy path).');
   onAffirmConfirmed();
