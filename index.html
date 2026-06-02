@@ -1,0 +1,1131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sam's Club × Affirm — Direct Checkout Virtual Card Integration Demo</title>
+<style>
+  /* ───── theme ───── */
+  :root {
+    --samsclub-blue: #0067A0;
+    --samsclub-blue-dark: #004B7A;
+    --samsclub-yellow: #FFC220;
+    --affirm-black: #0A0A0A;
+    --affirm-accent: #4A4AF4;
+    --bg: #F4F6FA;
+    --panel: #FFFFFF;
+    --panel-2: #FAFBFD;
+    --border: #E3E7EE;
+    --text: #1A2230;
+    --muted: #6B7588;
+    --success: #1A8754;
+    --warn: #B45F06;
+    --code-bg: #0F1722;
+    --code-fg: #E6EDF7;
+    --shadow: 0 1px 2px rgba(15,23,34,.05), 0 8px 24px rgba(15,23,34,.06);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.45;
+  }
+  code, pre { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 12px; }
+  button {
+    font: inherit; cursor: pointer; border: 1px solid var(--border);
+    background: var(--panel); border-radius: 6px; padding: 6px 12px; color: var(--text);
+    transition: background .15s, border-color .15s, transform .05s;
+  }
+  button:hover { background: var(--panel-2); border-color: #C8D0DC; }
+  button:active { transform: translateY(1px); }
+  button[disabled] { opacity: .45; cursor: not-allowed; }
+  .btn-primary {
+    background: var(--samsclub-blue); color: white; border-color: var(--samsclub-blue);
+    font-weight: 600;
+  }
+  .btn-primary:hover { background: var(--samsclub-blue-dark); border-color: var(--samsclub-blue-dark); }
+  .btn-affirm {
+    background: var(--affirm-black); color: white; border-color: var(--affirm-black);
+    font-weight: 600;
+  }
+  .btn-affirm:hover { background: #222; }
+
+  /* ───── header ───── */
+  header.top {
+    display: flex; align-items: center; gap: 16px;
+    padding: 12px 20px; background: white; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 10;
+  }
+  header.top .brand { display: flex; align-items: center; gap: 12px; font-weight: 700; }
+  header.top .brand .sc {
+    background: var(--samsclub-blue); color: white; padding: 4px 10px; border-radius: 4px;
+    font-size: 13px; letter-spacing: .3px;
+  }
+  header.top .brand .affirm {
+    background: var(--affirm-black); color: white; padding: 4px 10px; border-radius: 4px;
+    font-size: 13px; letter-spacing: .3px;
+  }
+  header.top .brand .x { color: var(--muted); font-weight: 400; }
+  header.top .title { color: var(--muted); font-weight: 500; }
+  header.top .controls { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  header.top .speed { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
+  header.top input[type="range"] { width: 100px; }
+
+  /* ───── layout ───── */
+  main {
+    display: grid;
+    grid-template-columns: minmax(360px, 1fr) minmax(420px, 1.1fr) minmax(420px, 1.2fr);
+    gap: 16px; padding: 16px; height: calc(100vh - 57px);
+  }
+  .panel {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden;
+  }
+  .panel h2 {
+    margin: 0; padding: 12px 16px; border-bottom: 1px solid var(--border);
+    font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px;
+    color: var(--muted); display: flex; align-items: center; gap: 8px;
+  }
+  .panel h2 .dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--samsclub-blue);
+  }
+  .panel .body { padding: 16px; overflow-y: auto; flex: 1; }
+
+  /* ───── storefront column ───── */
+  /* Sam's Club storefront chrome */
+  .sc-nav {
+    margin: -16px -16px 0; padding: 11px 16px;
+    background: var(--samsclub-blue); display: flex; align-items: center; gap: 12px;
+  }
+  .sc-nav .sc-logo { height: 27px; width: auto; flex-shrink: 0; }
+  .sc-nav .sc-search {
+    flex: 1; background: #fff; border-radius: 18px; padding: 7px 14px;
+    color: #8A93A3; font-size: 12px; display: flex; align-items: center; gap: 7px; min-width: 0;
+  }
+  .sc-nav .sc-cart { position: relative; color: #fff; font-size: 19px; flex-shrink: 0; }
+  .sc-nav .sc-cart .count {
+    position: absolute; top: -7px; right: -9px; background: var(--samsclub-yellow);
+    color: #0A2540; font-size: 10px; font-weight: 800; border-radius: 9px; padding: 0 5px; line-height: 16px;
+  }
+  .sc-subnav {
+    margin: 0 -16px 16px; padding: 7px 16px; background: var(--samsclub-blue-dark);
+    display: flex; align-items: center; gap: 10px; color: #DCE9F4; font-size: 11px; flex-wrap: wrap;
+  }
+  .sc-subnav .sc-pill {
+    background: var(--samsclub-yellow); color: #0A2540; font-weight: 800;
+    border-radius: 10px; padding: 1px 8px; letter-spacing: .2px;
+  }
+  .cart-heading { font-weight: 800; font-size: 16px; margin-bottom: 12px; }
+  .cart-heading span { color: var(--muted); font-weight: 600; font-size: 12px; }
+
+  .product { display: flex; gap: 12px; padding: 11px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; background: var(--panel); box-shadow: var(--shadow); }
+  .product .thumb {
+    width: 80px; height: 80px; flex-shrink: 0;
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center;
+  }
+  .product .thumb img { width: 100%; height: 100%; object-fit: contain; }
+  .product .info { flex: 1; min-width: 0; }
+  .product .info .name { font-weight: 600; font-size: 13px; line-height: 1.35; }
+  .product .info .sku { color: var(--muted); font-size: 11px; margin-top: 3px; }
+  .product .info .price { margin-top: 8px; font-weight: 800; color: var(--samsclub-blue); font-size: 15px; }
+
+  .totals { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--border); }
+  .totals .row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 13px; }
+  .totals .row.discount { color: var(--success); }
+  .totals .row.total { font-weight: 700; font-size: 16px; padding-top: 8px; border-top: 1px solid var(--border); margin-top: 6px; }
+
+  .cta { margin-top: 16px; }
+  .cta button { width: 100%; padding: 12px; font-size: 14px; }
+  .affirm-blurb {
+    margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border);
+    color: var(--muted); font-size: 13px; text-align: right;
+  }
+  .affirm-blurb b { color: var(--affirm-black); font-weight: 700; }
+  .affirm-name { color: var(--affirm-black); font-weight: 700; }
+  .affirm-logo { height: 15px; width: auto; display: inline-block; vertical-align: middle; }
+
+  /* processing state (shown from the modal step through to confirmation) */
+  .processing {
+    margin-top: 16px; padding: 30px 16px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--panel-2); text-align: center;
+  }
+  .processing .spinner {
+    width: 42px; height: 42px; margin: 0 auto 14px; border-radius: 50%;
+    border: 4px solid var(--border); border-top-color: var(--samsclub-blue);
+    animation: spin .9s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .processing .processing-text { color: var(--muted); font-size: 13px; font-weight: 600; }
+
+  /* cancel path — prompt to choose a payment method */
+  .choose-payment {
+    margin-top: 14px; padding: 11px 13px; border-radius: 8px;
+    background: #FFF4E5; border: 1px solid #F3C892; color: #8A4B0A;
+    font-size: 13px; font-weight: 600; text-align: center;
+  }
+
+  /* member states */
+  .member-state {
+    margin-top: 14px; padding: 12px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--panel-2); font-size: 13px;
+  }
+  .member-state .label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .4px; }
+  .member-state .value { margin-top: 4px; }
+
+  .thankyou {
+    margin-top: 16px; padding: 18px; border-radius: 10px;
+    background: linear-gradient(135deg, #E8F4EC, #F4FAF6); border: 1px solid #A8DEC0;
+    text-align: center;
+  }
+  .thankyou .check {
+    width: 48px; height: 48px; border-radius: 50%; background: var(--success); color: white;
+    display: inline-flex; align-items: center; justify-content: center; font-size: 28px; margin-bottom: 8px;
+  }
+  .thankyou h3 { margin: 0 0 4px; color: #0C5B36; }
+  .thankyou .order-id { color: var(--muted); font-size: 12px; }
+  .hidden { display: none !important; }
+
+  /* ───── sequence diagram column ───── */
+  .seq-current {
+    padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--panel-2);
+  }
+  .seq-current .step-num { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; font-weight: 600; }
+  .seq-current .step-label { margin-top: 4px; font-weight: 600; font-size: 14px; }
+  .seq-current .step-desc { margin-top: 4px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+
+  .seq-list { padding: 12px; }
+  .seq-step {
+    display: grid; grid-template-columns: 32px 1fr; gap: 10px;
+    padding: 10px 8px; border-radius: 6px; border-left: 3px solid transparent;
+    transition: background .2s, border-color .2s;
+    position: relative;
+  }
+  .seq-step + .seq-step { border-top: 1px solid transparent; }
+  .seq-step.done { opacity: .55; }
+  .seq-step.active {
+    background: #FFF7E0; border-left-color: var(--samsclub-yellow);
+    animation: pulse 1.6s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 194, 32, .4); }
+    50%      { box-shadow: 0 0 0 6px rgba(255, 194, 32, 0); }
+  }
+  .seq-step .num {
+    width: 28px; height: 28px; border-radius: 50%; background: var(--bg);
+    color: var(--muted); display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 12px; border: 1px solid var(--border);
+  }
+  .seq-step.active .num { background: var(--samsclub-yellow); color: var(--affirm-black); border-color: var(--samsclub-yellow); }
+  .seq-step.done .num { background: var(--success); color: white; border-color: var(--success); }
+  .seq-step.done .num::before { content: '✓'; }
+  .seq-step.done .num span { display: none; }
+  .seq-step .meta { min-width: 0; }
+  .seq-step .actors { display: flex; align-items: center; gap: 6px; font-size: 11px; flex-wrap: wrap; }
+  .seq-step .actor {
+    padding: 1px 7px; border-radius: 10px; background: var(--bg);
+    color: var(--muted); font-weight: 600; letter-spacing: .2px;
+  }
+  .seq-step .actor.member { background: #FDECEC; color: #9B2C2C; }
+  .seq-step .actor.scfe   { background: #DCEAF7; color: #1F4D7A; }
+  .seq-step .actor.scbe   { background: #DCEAF7; color: #1F4D7A; }
+  .seq-step .actor.afbe   { background: #EAEAEA; color: #1A1A1A; }
+  .seq-step .actor.affe   { background: #EAEAEA; color: #1A1A1A; }
+  .seq-step .actor.pp     { background: #FFF0DC; color: #884A11; }
+  .seq-step .arrow { color: var(--muted); font-size: 10px; }
+  .seq-step .label { margin-top: 2px; font-size: 13px; font-weight: 500; }
+
+  /* ───── activity log column ───── */
+  .log { padding: 12px; }
+  .log-entry {
+    border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; overflow: hidden;
+    background: var(--panel-2); animation: slideIn .3s ease-out;
+  }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .log-entry .head {
+    padding: 8px 12px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px; font-size: 12px;
+  }
+  .log-entry .head .method {
+    padding: 1px 7px; border-radius: 4px; font-weight: 700; font-size: 10px; letter-spacing: .4px;
+  }
+  .log-entry .head .method.GET  { background: #D6EAD3; color: #1F5C1A; }
+  .log-entry .head .method.POST { background: #FFE6B8; color: #855511; }
+  .log-entry .head .endpoint { color: var(--text); font-family: "SF Mono", Menlo, monospace; }
+  .log-entry .head .status { margin-left: auto; font-weight: 700; font-size: 11px; color: var(--muted); }
+  .log-entry .head .status.ok { color: var(--success); }
+  .log-entry .head .status.err { color: #B45F06; }
+  .log-entry .head .duration { color: var(--muted); font-size: 11px; }
+  .log-entry pre {
+    margin: 0; padding: 10px 12px; background: var(--code-bg); color: var(--code-fg);
+    overflow-x: auto; font-size: 11px; line-height: 1.5; max-height: 220px;
+  }
+  .log-entry pre.json .key { color: #79C0FF; }
+  .log-entry pre.json .str { color: #A5D6A0; }
+  .log-entry pre.json .num { color: #FFA657; }
+  .log-entry pre.json .bool { color: #FFA657; }
+  .log-entry pre.json .null { color: #FF7B72; }
+  .log-entry .note {
+    padding: 8px 12px; background: #FFFBEB; border-top: 1px solid #FAE5A3;
+    font-size: 11px; color: #6B4F00;
+  }
+
+  .log-divider {
+    display: flex; align-items: center; gap: 10px; margin: 12px 0 8px;
+    color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; font-weight: 600;
+  }
+  .log-divider::before, .log-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .log-event {
+    padding: 8px 12px; border-left: 3px solid var(--border); margin-bottom: 8px;
+    background: var(--panel-2); border-radius: 4px;
+    font-size: 12px;
+  }
+  .log-event.system { border-left-color: var(--samsclub-blue); }
+  .log-event.user { border-left-color: var(--samsclub-yellow); }
+  .log-event.affirm { border-left-color: var(--affirm-black); }
+  .log-event.payment { border-left-color: var(--warn); }
+  .log-event .ev-title { font-weight: 600; }
+  .log-event .ev-detail { color: var(--muted); margin-top: 2px; }
+
+  /* ───── modal ───── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(15, 23, 34, .6);
+    display: flex; align-items: center; justify-content: center; z-index: 100;
+    animation: fadeIn .2s ease-out;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .modal {
+    width: min(560px, 92vw); height: min(720px, 92vh); background: white;
+    border-radius: 14px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.3);
+    display: flex; flex-direction: column;
+    animation: slideUp .25s ease-out;
+  }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(.97); } to { opacity: 1; transform: none; } }
+  .modal .browser-chrome {
+    background: #ECEEF1; padding: 8px 10px; display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid #D5D9DF; font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  .modal .browser-chrome .dots { display: flex; gap: 5px; }
+  .modal .browser-chrome .dots span { width: 11px; height: 11px; border-radius: 50%; background: #C8CCD3; }
+  .modal .browser-chrome .url {
+    flex: 1; background: white; border: 1px solid #D5D9DF; border-radius: 5px;
+    padding: 4px 10px; font-size: 11px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-family: "SF Mono", Menlo, monospace;
+  }
+  .modal .browser-chrome .close-modal {
+    border: 0; background: transparent; padding: 0 4px; color: var(--muted); font-size: 18px; line-height: 1;
+  }
+  .modal iframe { flex: 1; border: 0; width: 100%; background: white; }
+  /* simulated Affirm checkout screen */
+  .modal .affirm-mock {
+    flex: 1; overflow: auto; background: #fff; padding: 26px 26px 22px;
+    display: flex; flex-direction: column; gap: 15px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  .afm-logo { font-size: 30px; font-weight: 800; color: #0A0A0A; letter-spacing: -.5px; }
+  .afm-amount { text-align: center; padding: 4px 0 2px; }
+  .afm-amount-label { color: var(--muted); font-size: 12px; }
+  .afm-amount-val { font-size: 34px; font-weight: 800; color: #0A0A0A; }
+  .afm-plan { display: flex; flex-direction: column; gap: 10px; margin-top: 2px; }
+  .afm-plan-row {
+    display: flex; align-items: center; justify-content: space-between;
+    border: 1.5px solid var(--border); border-radius: 12px; padding: 13px 16px;
+  }
+  .afm-plan-row.afm-selected { border-color: var(--affirm-accent); background: #F4F4FF; }
+  .afm-plan-mo { font-size: 19px; font-weight: 800; color: #0A0A0A; }
+  .afm-plan-mo span { font-size: 13px; font-weight: 600; color: var(--muted); }
+  .afm-plan-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .afm-radio { color: var(--affirm-accent); font-size: 18px; }
+  .afm-radio2 { color: #C8D0DC; font-size: 18px; }
+  .afm-pin { border-top: 1px solid var(--border); padding-top: 15px; }
+  .afm-pin-label { font-size: 13px; color: var(--text); margin-bottom: 10px; }
+  .afm-pin-boxes { display: flex; gap: 8px; }
+  .afm-pin-boxes span {
+    width: 38px; height: 46px; border: 1.5px solid var(--border); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: #0A0A0A;
+  }
+  .afm-pin-note { font-size: 11px; color: var(--muted); margin-top: 8px; }
+  .afm-confirm {
+    margin-top: 4px; background: #0A0A0A; color: #fff; border: 0; border-radius: 999px;
+    padding: 14px; font-size: 15px; font-weight: 700; cursor: pointer;
+  }
+  .afm-confirm:hover { background: #222; }
+  .afm-cancel {
+    background: transparent; border: 0; color: var(--muted); font-size: 13px; padding: 2px; cursor: pointer;
+  }
+  .afm-legal { font-size: 10.5px; color: var(--muted); line-height: 1.45; text-align: center; }
+  .modal .status-bar {
+    padding: 8px 12px; border-top: 1px solid #D5D9DF; background: #FAFBFD;
+    font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 8px;
+  }
+  .modal .status-bar .live-dot {
+    width: 6px; height: 6px; border-radius: 50%; background: #E0245E;
+    animation: blink 1.4s infinite;
+  }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
+
+  /* ───── notice banner ───── */
+  .notice {
+    margin: 0 16px 12px; padding: 10px 12px; border-radius: 8px; font-size: 12px;
+    background: #EEF4FF; border: 1px solid #C8DCFF; color: #1F3F8C;
+  }
+  .notice b { color: var(--affirm-accent); }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <span class="sc">Sam's Club</span>
+    <span class="x">×</span>
+    <span class="affirm">affirm</span>
+  </div>
+  <div class="title">Direct Checkout Virtual Card Integration Demo</div>
+  <div class="controls">
+    <button id="btn-step" disabled title="Advance one step">⏭ Step</button>
+    <button id="btn-play" class="btn-primary">▶ Auto-play</button>
+    <button id="btn-reset" title="Reset the demo">↻ Reset</button>
+    <span class="speed">
+      Speed
+      <input type="range" id="speed" min="500" max="3000" step="250" value="1400" />
+    </span>
+  </div>
+</header>
+
+<main>
+  <!-- ─── LEFT: Member POV ─── -->
+  <section class="panel">
+    <h2><span class="dot" style="background: var(--samsclub-blue)"></span>Storefront — Member view</h2>
+    <div class="body" id="member-view">
+      <nav class="sc-nav">
+        <svg class="sc-logo" viewBox="0 0 176 30" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sam's Club">
+          <path d="M14 3 L25 15 L14 27 L3 15 Z" fill="#FFC220"/>
+          <path d="M14 9 L20 15 L14 21 L8 15 Z" fill="#0067A0"/>
+          <text x="35" y="22" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="800" fill="#fff">Sam's Club</text>
+        </svg>
+        <div class="sc-search">🔍 Search Sam's Club</div>
+        <div class="sc-cart">🛒<span class="count">2</span></div>
+      </nav>
+      <div class="sc-subnav">
+        <span class="sc-pill">PLUS MEMBER</span>
+        <span>Pickup · Bentonville, AR</span>
+        <span>·</span>
+        <span>Free shipping</span>
+      </div>
+      <div class="cart-heading">Your cart <span>(2 items)</span></div>
+      <div class="product">
+        <div class="thumb"><img src="samsclub-tv.png" alt="Samsung 65-inch QLED 4K TV"></div>
+        <div class="info">
+          <div class="name">Samsung 65" Class QLED 4K Q60D Smart TV</div>
+          <div class="sku">SKU P03021425 · Qty 1</div>
+          <div class="price">$798.00</div>
+        </div>
+      </div>
+      <div class="product">
+        <div class="thumb"><img src="samsclub-luggage.png" alt="Member's Mark 3-piece spinner luggage set"></div>
+        <div class="info">
+          <div class="name">Member's Mark Hardside 3-Piece Spinner Luggage Set</div>
+          <div class="sku">SKU P02987541 · Qty 1</div>
+          <div class="price">$199.98</div>
+        </div>
+      </div>
+      <div class="totals">
+        <div class="row"><span>Subtotal</span><span>$997.98</span></div>
+        <div class="row discount"><span>Plus Member 10% off Electronics</span><span>−$10.00</span></div>
+        <div class="row discount"><span>Instant Savings — TV</span><span>−$50.00</span></div>
+        <div class="row"><span>Shipping (Plus)</span><span>FREE</span></div>
+        <div class="row"><span>Tax</span><span>$78.20</span></div>
+        <div class="row total"><span>Total</span><span>$1,016.18</span></div>
+        <div class="affirm-blurb">As low as <b>$85/mo</b> with <span class="affirm-name">Affirm</span></div>
+      </div>
+      <div id="choose-payment" class="choose-payment hidden">⚠️ Please choose a payment method to continue.</div>
+
+      <div class="cta">
+        <button id="btn-apply" class="btn-affirm">Apply now with affirm</button>
+      </div>
+
+      <div id="member-status" class="member-state hidden">
+        <div class="label">Affirm checkout status</div>
+        <div class="value" id="member-status-val">Waiting…</div>
+      </div>
+
+      <div id="processing" class="processing hidden">
+        <div class="spinner"></div>
+        <div class="processing-text">Processing your order…</div>
+      </div>
+
+      <div id="thankyou" class="thankyou hidden">
+        <div class="check">✓</div>
+        <h3>Thanks for your order!</h3>
+        <div class="order-id">Order # <span id="order-id">—</span></div>
+        <div style="margin-top: 8px; font-size: 12px;">Financed by Affirm</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── MIDDLE: Sequence + current step ─── -->
+  <section class="panel">
+    <h2><span class="dot" style="background: var(--samsclub-yellow)"></span>Sequence of operations</h2>
+    <div class="seq-current">
+      <div class="step-num" id="cur-step-num">Idle</div>
+      <div class="step-label" id="cur-step-label">Click "Auto-play" or "Step" to start.</div>
+      <div class="step-desc" id="cur-step-desc">This demo walks through the full Sam's Club ↔ Affirm Direct Checkout VCN flow end-to-end.</div>
+    </div>
+    <div class="body">
+      <div class="seq-list" id="seq-list"><!-- populated by JS --></div>
+    </div>
+  </section>
+
+  <!-- ─── RIGHT: Backend activity log ─── -->
+  <section class="panel">
+    <h2><span class="dot" style="background: var(--affirm-black)"></span>Backend activity</h2>
+    <div class="notice">
+      <b>Simulation</b> — a static walkthrough with <b>canned, illustrative responses</b>. No live API calls, no proxy, no credentials. The <b>Direct Checkout</b> and <b>Read Card</b> payloads shown are representative of the real Affirm sandbox.
+    </div>
+    <div class="body" id="log"></div>
+  </section>
+</main>
+
+<!-- ─── Modal ─── -->
+<div id="modal-overlay" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="browser-chrome">
+      <div class="dots"><span></span><span></span><span></span></div>
+      <div class="url" id="modal-url">about:blank</div>
+      <button class="close-modal" id="btn-close-modal" title="Close">×</button>
+    </div>
+    <div class="affirm-mock" id="affirm-mock">
+      <div class="afm-logo">affirm</div>
+      <div class="afm-amount">
+        <div class="afm-amount-label">Total purchase</div>
+        <div class="afm-amount-val">$1,016.18</div>
+      </div>
+      <div class="afm-plan">
+        <div class="afm-plan-row afm-selected">
+          <div>
+            <div class="afm-plan-mo">$85<span>/mo</span></div>
+            <div class="afm-plan-sub">12 months · 15% APR</div>
+          </div>
+          <div class="afm-radio">●</div>
+        </div>
+        <div class="afm-plan-row">
+          <div>
+            <div class="afm-plan-mo">$170<span>/mo</span></div>
+            <div class="afm-plan-sub">6 months · 0% APR</div>
+          </div>
+          <div class="afm-radio2">○</div>
+        </div>
+      </div>
+      <div class="afm-pin">
+        <div class="afm-pin-label">Enter the code sent to (•••) •••-3729</div>
+        <div class="afm-pin-boxes"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span></div>
+        <div class="afm-pin-note">Sandbox verification — code prefilled for the demo</div>
+      </div>
+      <button class="afm-confirm" id="affirm-confirm">Confirm loan</button>
+      <button class="afm-cancel" id="affirm-cancel">Cancel and go back</button>
+      <div class="afm-legal">By confirming you agree to Affirm's loan terms. This is a simulated checkout for demonstration only — no real loan is created and no data is sent anywhere.</div>
+    </div>
+    <div class="status-bar">
+      <span class="live-dot"></span>
+      <span>Embedded Affirm checkout · simulated (no live connection)</span>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ─────────────────────────────────────────────────────────────────
+   CONFIG — SIMULATION BUILD (safe to share externally).
+   No live API calls, no proxy, no credentials. Every "API" response
+   below is canned, illustrative test data so the complete flow can be
+   demonstrated anywhere as a plain static page.
+─────────────────────────────────────────────────────────────────── */
+const SIMULATION = true;
+
+// Canned Direct Checkout response (illustrative — not a live checkout).
+const CHECKOUT_RESPONSE = {
+  checkout_id: 'CHKVCN2K7UUOY25KL6N',
+  redirect_url: 'https://sandbox.affirm.com/u/checkout/CHKVCN2K7UUOY25KL6N'
+};
+
+// Canned Read Card response (test data, no real PII). For the Sam's Club /
+// Walmart TSS integration, number, cvv and expiration come back ENCRYPTED
+// (JWE, RSA-OAEP-256 + A256GCM); the truncated values below illustrate that.
+const CARD_RESPONSE = {
+  checkout_token: '0WJ31DSCZB3OPTIN',
+  created: '2026-05-21T22:39:37.881000',
+  charge_ari: 'MFFO-VIIT',
+  callback_id: '98d70130-3857-499b-873b-2c35534d41d0',
+  number: 'eyJhbGciOiAiUlNBLU9BRVAtMjU2IiwgImVuYyI6ICJBMjU2R0NNIn0.nJcWqmQ1rUGjvf9izKG-c…PBkBZsj_06j_IT9HIhSTIQ',
+  cvv: 'eyJhbGciOiAiUlNBLU9BRVAtMjU2IiwgImVuYyI6ICJBMjU2R0NNIn0.gHbbM4Bx_nPGZmGl3dzPC…s9EA2lGaU9_cYUa6mfyPPA',
+  expiration: 'eyJhbGciOiAiUlNBLU9BRVAtMjU2IiwgImVuYyI6ICJBMjU2R0NNIn0.OTNizrFqFF8H5nRbyhKEh…WLFIc8vmIhxjDsz4yfYPmA',
+  cardholder_name: 'AffirmInc testing profile',
+  billing_address: { line1: '650 California St.', line2: '12th Floor', city: 'San Francisco', state: 'CA', zipcode: '94108' },
+  phone: 18554233729
+};
+
+// What the card looks like AFTER Sam's Club decrypts it via Walmart TSS
+// (illustrative test PAN — never a real card).
+const DECRYPTED_CARD = {
+  number: '4111111111111111',
+  cvv: '***',
+  expiration: '0827',
+  cardholder_name: 'AffirmInc testing profile',
+  charge_ari: 'MFFO-VIIT',
+  billing_address: CARD_RESPONSE.billing_address
+};
+
+// For the Sam's Club / Walmart TSS integration, Affirm encrypts number, cvv and
+// expiration with the TSS-provided RSA public key (JWE, RSA-OAEP-256 + A256GCM).
+// These truncated samples illustrate what those fields look like on the wire.
+// (This generic sandbox key returns plaintext; production via Walmart TSS is encrypted.)
+const ENCRYPTED_CARD_SAMPLE = {
+  number:     'eyJhbGciOiAiUlNBLU9BRVAtMjU2IiwgImVuYyI6ICJBMjU2R0NNIn0.nJcWqmQ1rUGjvf9izKG-c…PBkBZsj_06j_IT9HIhSTIQ',
+  cvv:        'eyJhbGciOiAiUlNBLU9BRVAtMjU2IiwgImVuYyI6ICJBMjU2R0NNIn0.gHbbM4Bx_nPGZmGl3dzPC…s9EA2lGaU9_cYUa6mfyPPA',
+  expiration: 'eyJhbGciOiAiUlNBLU9BRVAtMjU2IiwgImVuYyI6ICJBMjU2R0NNIn0.OTNizrFqFF8H5nRbyhKEh…WLFIc8vmIhxjDsz4yfYPmA'
+};
+
+const CHECKOUT_PAYLOAD = {
+  merchant: {
+    public_api_key: 'SJ0WQVUAV9FPV3Z5',
+    user_confirmation_url: 'https://www.samsclub.com/affirm/confirm',
+    user_cancel_url: 'https://www.samsclub.com/affirm/cancel',
+    user_confirmation_url_action: 'POST',
+    name: "Sam's Club",
+    use_vcn: true
+  },
+  shipping: {
+    name: { first: 'Joe', last: 'Doe' },
+    address: { line1: '2101 SE Simple Savings Dr', line2: 'Apt 4', city: 'Bentonville', state: 'AR', zipcode: '72712', country: 'USA' },
+    phone_number: '4795551234',
+    email: 'joedoe@example.com'
+  },
+  billing: {
+    name: { first: 'Joe', last: 'Doe' },
+    address: { line1: '2101 SE Simple Savings Dr', line2: 'Apt 4', city: 'Bentonville', state: 'AR', zipcode: '72712', country: 'USA' },
+    phone_number: '4795551234',
+    email: 'joedoe@example.com'
+  },
+  items: [
+    { display_name: 'Samsung 65" Class QLED 4K Q60D Smart TV', sku: 'P03021425', unit_price: 79800, qty: 1 },
+    { display_name: "Member's Mark Hardside 3-Piece Spinner Luggage Set", sku: 'P02987541', unit_price: 19998, qty: 1 }
+  ],
+  discounts: {
+    PLUS10: { discount_amount: 1000, discount_display_name: 'Plus Member 10% off Electronics' },
+    INSTANTSAVINGS50: { discount_amount: 5000, discount_display_name: 'Instant Savings - $50 off TV' }
+  },
+  metadata: { platform_type: 'samsclub-web', shipping_type: "Sam's Club Free Shipping for Plus", membership_tier: 'Plus' },
+  order_id: 'SAMS-JKLMO4321',
+  shipping_amount: 0,
+  tax_amount: 7820,
+  total: 99618
+};
+
+/* ─────────────────────────────────────────────────────────────────
+   STEPS — the orchestration script
+─────────────────────────────────────────────────────────────────── */
+const STEPS = [
+  { actors: ['member', 'scfe'], label: 'Member clicks "Apply now with affirm"',
+    desc: 'Member adds items to cart, taps the Affirm CTA. The Sam\'s Club frontend captures the intent and prepares to initiate a checkout.', kind: 'click' },
+
+  { actors: ['scfe', 'scbe'], label: 'Frontend → Backend: initiate Affirm checkout',
+    desc: 'Sam\'s Club frontend sends the cart contents to its backend to begin the Affirm flow. No Affirm credentials live in the browser.', kind: 'fe_to_be' },
+
+  { actors: ['scbe', 'afbe'], label: 'Backend → Affirm: POST /api/v2/checkout/direct',
+    desc: 'Sam\'s Club backend calls Affirm\'s Direct Checkout API server-to-server with Basic auth, sending the cart, member, and merchant config including use_vcn=true.', kind: 'api_checkout' },
+
+  { actors: ['afbe', 'scbe'], label: 'Affirm returns checkout_id and redirect_url',
+    desc: 'Affirm provisions the checkout, returns a checkout_id (used later to read the VCN card) and a redirect_url for the consumer to complete the loan flow.', kind: 'api_checkout_response' },
+
+  { actors: ['scbe', 'scfe'], label: 'Backend → Frontend: hand redirect_url to client',
+    desc: 'Sam\'s Club backend passes the Affirm redirect_url back to the frontend so it can open the consumer-facing Affirm experience.', kind: 'be_to_fe' },
+
+  { actors: ['scfe', 'member'], label: 'Frontend opens modal/Webview with redirect_url',
+    desc: 'Sam\'s Club embeds Affirm\'s hosted checkout in an iframe modal. The member never leaves samsclub.com.', kind: 'open_modal' },
+
+  { actors: ['member', 'affe'], label: 'Member confirms loan — Affirm modal closes',
+    desc: 'Happy path: inside the iframe the member confirms Affirm\'s loan terms (sandbox PIN 123456). Affirm posts the result to user_confirmation_url, the modal closes automatically, and the order proceeds. Alternate path: if the member closes/cancels, Affirm returns the cancel_url and the member is sent back to choose a payment method.', kind: 'modal_flow', wait: true },
+
+  { actors: ['scfe', 'scbe'], label: 'Frontend → Backend: update payment with checkout_id',
+    desc: 'Frontend notifies backend that the Affirm flow finished and passes the checkout_id along so the backend can fetch the card.', kind: 'fe_to_be' },
+
+  { actors: ['scbe', 'afbe'], label: 'Backend → Affirm: GET /api/v2/cards/{checkout_id}',
+    desc: 'For a VCN merchant, the backend exchanges the checkout_id for a one-time virtual card via the Read Card API. This is what gets run through the existing card processor.', kind: 'api_card' },
+
+  { actors: ['afbe', 'scbe'], label: 'Affirm returns encrypted VCN card details',
+    desc: 'Affirm responds with the virtual card. For the Sam\'s Club / Walmart TSS integration the number, CVV and expiration come back encrypted (JWE, RSA-OAEP-256) — Affirm encrypts them with the TSS-provided RSA public key.', kind: 'api_card_response' },
+
+  { actors: ['scbe', 'scbe'], label: 'Sam\'s Club decrypts the VCN via Walmart TSS',
+    desc: 'Before authorization, the Sam\'s Club backend decrypts the encrypted number, CVV and expiration using Walmart\'s Token Security Service (TSS), producing the usable virtual card.', kind: 'decrypt_card' },
+
+  { actors: ['scbe', 'scfe'], label: 'Backend → Frontend: payment ready',
+    desc: 'Backend confirms to the frontend that a usable (decrypted) card is in hand and the order is ready to be authorized.', kind: 'be_to_fe' },
+
+  { actors: ['scfe', 'scbe'], label: 'Frontend → Backend: place order',
+    desc: 'Member confirms the purchase; frontend kicks off final order placement.', kind: 'fe_to_be' },
+
+  { actors: ['scbe', 'pp'], label: 'Backend → Payment Processor: authorize VCN',
+    desc: 'Sam\'s Club\'s existing payment processor (Stripe / Cybersource / first-party) auths the Affirm-issued virtual card just like any other card.', kind: 'payment_auth' },
+
+  { actors: ['pp', 'scbe'], label: 'Payment Processor returns auth status',
+    desc: 'Processor returns approval. From here it\'s a standard card transaction — Affirm\'s involvement is invisible to the rest of the order pipeline.', kind: 'payment_auth_response' },
+
+  { actors: ['scbe', 'scfe'], label: 'Backend → Frontend: order ID and status',
+    desc: 'Backend sends the final order id and confirmation status to the frontend.', kind: 'be_to_fe' },
+
+  { actors: ['scfe', 'member'], label: 'Member sees "Thank you" confirmation',
+    desc: 'Order placed. The member sees a Sam\'s Club confirmation screen. The Affirm loan and VCN are finalized behind the scenes.', kind: 'thank_you' }
+];
+
+const ACTOR_NAMES = {
+  member: 'Member', scfe: 'Samsclub-FE', scbe: 'Samsclub-BE',
+  afbe: 'Affirm-BE', affe: 'Affirm-FE', pp: 'PaymentProc'
+};
+
+/* ─────────────────────────────────────────────────────────────────
+   STATE
+─────────────────────────────────────────────────────────────────── */
+const state = {
+  idx: -1,
+  playing: false,
+  awaitingUser: false,    // true when we're paused for the member to complete the modal
+  checkoutId: null,
+  redirectUrl: null,
+  cardDetails: null,
+  speedMs: 1400,
+  timer: null,
+  startedAt: 0
+};
+
+/* ─────────────────────────────────────────────────────────────────
+   DOM helpers
+─────────────────────────────────────────────────────────────────── */
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+function buildSeqList() {
+  const wrap = $('#seq-list');
+  wrap.innerHTML = STEPS.map((s, i) => {
+    const [from, to] = s.actors;
+    return `
+      <div class="seq-step" data-idx="${i}">
+        <div class="num"><span>${i + 1}</span></div>
+        <div class="meta">
+          <div class="actors">
+            <span class="actor ${from}">${ACTOR_NAMES[from]}</span>
+            <span class="arrow">━━▶</span>
+            <span class="actor ${to}">${ACTOR_NAMES[to]}</span>
+          </div>
+          <div class="label">${s.label}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderCurrentStep() {
+  const s = STEPS[state.idx];
+  if (state.idx < 0) {
+    $('#cur-step-num').textContent = 'Idle';
+    $('#cur-step-label').textContent = 'Click "Auto-play" or "Step" to start.';
+    $('#cur-step-desc').textContent = 'This demo walks through the full Sam\'s Club ↔ Affirm Direct Checkout VCN flow end-to-end.';
+  } else if (state.idx >= STEPS.length) {
+    $('#cur-step-num').textContent = 'Complete';
+    $('#cur-step-label').textContent = '✅ Flow complete';
+    $('#cur-step-desc').textContent = 'Hit Reset to run it again.';
+  } else {
+    $('#cur-step-num').textContent = `Step ${state.idx + 1} / ${STEPS.length}`;
+    $('#cur-step-label').textContent = s.label;
+    $('#cur-step-desc').textContent = s.desc;
+  }
+  $$('#seq-list .seq-step').forEach((el, i) => {
+    el.classList.toggle('active', i === state.idx);
+    el.classList.toggle('done', i < state.idx);
+  });
+  if (state.idx >= 0 && state.idx < STEPS.length) {
+    const node = $(`#seq-list .seq-step[data-idx="${state.idx}"]`);
+    if (node) node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Log helpers
+─────────────────────────────────────────────────────────────────── */
+function logDivider(text) {
+  const log = $('#log');
+  log.insertAdjacentHTML('beforeend', `<div class="log-divider">${escapeHtml(text)}</div>`);
+  log.scrollTop = log.scrollHeight;
+}
+function logEvent(kind, title, detail = '') {
+  const log = $('#log');
+  log.insertAdjacentHTML('beforeend', `
+    <div class="log-event ${kind}">
+      <div class="ev-title">${escapeHtml(title)}</div>
+      ${detail ? `<div class="ev-detail">${escapeHtml(detail)}</div>` : ''}
+    </div>`);
+  log.scrollTop = log.scrollHeight;
+}
+function logApi({ method, endpoint, payload, response, status, durationMs, note }) {
+  const log = $('#log');
+  const okClass = status >= 200 && status < 300 ? 'ok' : 'err';
+  const html = `
+    <div class="log-entry">
+      <div class="head">
+        <span class="method ${method}">${method}</span>
+        <span class="endpoint">${escapeHtml(endpoint)}</span>
+        <span class="status ${okClass}">${status}</span>
+        <span class="duration">· ${durationMs}ms</span>
+      </div>
+      ${payload  ? `<pre class="json">▼ Request body\n${syntaxJson(payload)}</pre>` : ''}
+      ${response ? `<pre class="json">▲ Response body\n${syntaxJson(response)}</pre>` : ''}
+      ${note ? `<div class="note">${escapeHtml(note)}</div>` : ''}
+    </div>`;
+  log.insertAdjacentHTML('beforeend', html);
+  log.scrollTop = log.scrollHeight;
+}
+
+function logBlock(kind, title, obj, note) {
+  const log = $('#log');
+  log.insertAdjacentHTML('beforeend', `
+    <div class="log-entry">
+      <div class="head"><span class="endpoint">${escapeHtml(title)}</span></div>
+      <pre class="json">${syntaxJson(obj)}</pre>
+      ${note ? `<div class="note">${escapeHtml(note)}</div>` : ''}
+    </div>`);
+  log.scrollTop = log.scrollHeight;
+}
+
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function syntaxJson(obj) {
+  const json = JSON.stringify(obj, null, 2);
+  return escapeHtml(json)
+    .replace(/(&quot;[^&]+?&quot;)(\s*:)/g, '<span class="key">$1</span>$2')
+    .replace(/: (&quot;[^]*?&quot;)/g, ': <span class="str">$1</span>')
+    .replace(/: (-?\d+\.?\d*)/g, ': <span class="num">$1</span>')
+    .replace(/: (true|false)/g, ': <span class="bool">$1</span>')
+    .replace(/: (null)/g, ': <span class="null">$1</span>');
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Step runners — what happens for each kind of step
+─────────────────────────────────────────────────────────────────── */
+async function runStep(step) {
+  switch (step.kind) {
+    case 'click':
+      logEvent('user', '👆 Member clicked "Apply now with affirm"', `Cart total: $1,016.18 · 2 items`);
+      $('#btn-apply').disabled = true;
+      $('#member-status').classList.remove('hidden');
+      $('#member-status-val').textContent = 'Initiating Affirm checkout…';
+      break;
+
+    case 'fe_to_be':
+      logEvent('system', '⇄ Frontend → Backend', step.label.replace(/^.*?:\s*/, ''));
+      break;
+
+    case 'be_to_fe':
+      logEvent('system', '⇄ Backend → Frontend', step.label.replace(/^.*?:\s*/, ''));
+      if (step.label.includes('redirect_url')) {
+        $('#member-status-val').textContent = 'Loading Affirm checkout…';
+      } else if (step.label.includes('payment ready')) {
+        $('#member-status-val').textContent = 'Payment method ready · placing order…';
+      } else if (step.label.includes('order ID')) {
+        $('#member-status-val').textContent = 'Order placed.';
+      }
+      break;
+
+    case 'api_checkout': {
+      logDivider('POST · Direct Checkout API (simulated)');
+      const t0 = performance.now();
+      await sleep(450 + Math.random() * 300);
+      const dt = Math.round(performance.now() - t0);
+      const body = CHECKOUT_RESPONSE;
+      state.checkoutId  = body.checkout_id;
+      state.redirectUrl = body.redirect_url;
+      logApi({
+        method: 'POST', endpoint: '/api/v2/checkout/direct',
+        payload: CHECKOUT_PAYLOAD, response: body, status: 200, durationMs: dt,
+        note: `Checkout created (simulated). checkout_id=${body.checkout_id} is used later to read the VCN. The redirect_url opens in the Affirm modal next.`
+      });
+      break;
+    }
+
+    case 'api_checkout_response':
+      // The response was already logged in the previous step; this is the diagrammatic return arrow.
+      logEvent('affirm', '◀ Affirm-BE returned checkout', `checkout_id: ${state.checkoutId}`);
+      break;
+
+    case 'open_modal':
+      openModal(state.redirectUrl);
+      $('#member-status-val').textContent = 'Affirm checkout modal open · waiting for member to complete the loan flow.';
+      // Logged here (on modal open) so it always precedes the "Loan confirmed"
+      // entry, even if the member completes the loan before this step advances.
+      logEvent('user', '⏳ Awaiting member action inside the Affirm modal', 'The member reviews and confirms Affirm\'s loan terms in the embedded checkout. Click "Confirm loan" to continue down the happy path, or "Cancel and go back" to take the cancel path.');
+      break;
+
+    case 'modal_flow':
+      showProcessing();
+      state.awaitingUser = true;
+      // Resolved externally by onAffirmConfirmed() (happy path) or aborted by
+      // onAffirmCancelled() (member closes/cancels the Affirm modal).
+      return new Promise((resolve) => { state._modalResolver = resolve; });
+
+    case 'api_card': {
+      logDivider('GET · Read Card API (simulated)');
+      const t0 = performance.now();
+      await sleep(400 + Math.random() * 300);
+      const dt = Math.round(performance.now() - t0);
+      state.cardDetails = CARD_RESPONSE;
+      state.decrypted = DECRYPTED_CARD;
+      logApi({
+        method: 'GET', endpoint: `/api/v2/cards/${state.checkoutId}`,
+        response: CARD_RESPONSE, status: 200, durationMs: dt,
+        note: `VCN issued for the completed loan. number, cvv and expiration come back ENCRYPTED (JWE) for the Walmart TSS integration — Sam's Club decrypts them next, before authorization. charge_ari=${CARD_RESPONSE.charge_ari}`
+      });
+      break;
+    }
+
+    case 'api_card_response':
+      logBlock('affirm', '◀ Affirm-BE returned ENCRYPTED card (number · cvv · expiration as JWE)', {
+        checkout_token: state.cardDetails?.checkout_token,
+        number: ENCRYPTED_CARD_SAMPLE.number,
+        cvv: ENCRYPTED_CARD_SAMPLE.cvv,
+        expiration: ENCRYPTED_CARD_SAMPLE.expiration,
+        cardholder_name: state.cardDetails?.cardholder_name,
+        charge_ari: state.cardDetails?.charge_ari
+      }, 'For Sam\'s Club / Walmart TSS, number, cvv and expiration are returned encrypted (JWE, RSA-OAEP-256 + A256GCM). Sam\'s Club decrypts them via TSS before authorization. (This sandbox key returns plaintext; the encrypted values shown are illustrative.)');
+      break;
+
+    case 'decrypt_card': {
+      logDivider('Walmart TSS · decrypt VCN');
+      await sleep(300 + Math.random() * 250);
+      const card = state.decrypted || {};
+      logBlock('payment', '🔓 Sam\'s Club decrypted the card via Walmart TSS', {
+        number: card.number ? maskPan(card.number) : '•••• •••• •••• ••••',
+        cvv: '***',
+        expiration: card.expiration || 'MMYY'
+      }, 'Decrypted on the Sam\'s Club backend (JWE → plaintext) using the TSS key. The usable virtual card is now ready to run through the existing card processor — no plaintext PAN is exposed to the frontend.');
+      break;
+    }
+
+    case 'payment_auth': {
+      logDivider('Payment processor · authorize VCN');
+      const card = state.decrypted || {};
+      const t0 = performance.now();
+      await sleep(450 + Math.random() * 350);
+      const dt = Math.round(performance.now() - t0);
+      logApi({
+        method: 'POST', endpoint: '/payments/authorize',
+        payload: {
+          amount_cents: 101618,
+          currency: 'USD',
+          card: {
+            number: card.number ? maskPan(card.number) : null,
+            exp: card.expiration,
+            cvv: '***',
+            cardholder_name: card.cardholder_name,
+            billing_address: card.billing_address
+          },
+          metadata: { affirm_charge_ari: card.charge_ari, order_id: 'SAMS-JKLMO4321' }
+        },
+        response: { approved: true, processor_txn_id: 'PP-' + Math.random().toString(36).slice(2, 10).toUpperCase(), avs: 'Y', cvv_check: 'M' },
+        status: 200, durationMs: dt,
+        note: 'Simulated processor call using the decrypted VCN. From the processor\'s POV this is a normal card auth — Affirm involvement is invisible.'
+      });
+      break;
+    }
+
+    case 'payment_auth_response':
+      logEvent('payment', '◀ Processor approved', 'Standard card auth response.');
+      break;
+
+    case 'thank_you':
+      logEvent('payment', '💳 Virtual card authorized', `Charge ARI ${state.cardDetails?.charge_ari || '—'}`);
+      logEvent('system', '🎉 Order placed', 'Member sees confirmation.');
+      $('#processing').classList.add('hidden');
+      $('#thankyou').classList.remove('hidden');
+      $('#order-id').textContent = '10024-' + Math.random().toString(36).slice(2, 8).toUpperCase();
+      $('#member-status').classList.add('hidden');
+      break;
+  }
+}
+
+function maskPan(n) { return n.slice(0, 4) + ' •••• •••• ' + n.slice(-4); }
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+/* ─────────────────────────────────────────────────────────────────
+   Modal helpers
+─────────────────────────────────────────────────────────────────── */
+function openModal(url) {
+  $('#modal-overlay').classList.remove('hidden');
+  $('#modal-url').textContent = url;
+}
+function closeModal() {
+  $('#modal-overlay').classList.add('hidden');
+}
+function showProcessing() {
+  $('#member-status').classList.add('hidden');
+  $('#processing').classList.remove('hidden');
+}
+
+// Listen for two sources of postMessage:
+//  1. Affirm sandbox lifecycle events (origin *.affirm.com).
+//  2. Our proxy's confirm/cancel landing pages. When the member confirms the
+//     loan, Affirm POSTs to user_confirmation_url (= our proxy's /affirm/confirm).
+//     The proxy returns a tiny page that postMessages back here, so we close the
+//     modal instead of letting the iframe navigate to samsclub.com.
+window.addEventListener('message', (ev) => {
+  let host = '';
+  try { host = new URL(ev.origin).hostname; } catch (_) { return; }
+  const isAffirm = /affirm\.com$/i.test(host);
+  const isProxy = host === 'localhost' || host === '127.0.0.1';
+  if (!isAffirm && !isProxy) return;
+
+  const data = ev.data;
+  const blob = typeof data === 'string' ? data : JSON.stringify(data || {});
+
+  if (isProxy) {
+    // Landing-page signal from our proxy.
+    const obj = (typeof data === 'object' && data) || {};
+    if (obj.type === 'affirm:confirmed') {
+      logEvent('affirm', '✅ Loan confirmed — Affirm modal closed', obj.checkout_token ? `checkout_token ${obj.checkout_token}` : '');
+      closeModal();
+      onAffirmConfirmed();
+    } else if (obj.type === 'affirm:cancelled') {
+      closeModal();
+      onAffirmCancelled();
+    }
+    return;
+  }
+
+  // Affirm lifecycle events — used only to heuristically advance the flow; not
+  // logged (too noisy). The proxy's confirm landing page is the authoritative
+  // completion signal that gets logged.
+  if (/complete|success|confirm/i.test(blob)) onAffirmConfirmed();
+});
+
+function onAffirmConfirmed() {
+  if (!state.awaitingUser) return;
+  state.awaitingUser = false;
+  if (state._modalResolver) { state._modalResolver(); state._modalResolver = null; }
+  // In manual (paused) mode the playback loop doesn't auto-continue after the
+  // awaited modal step resolves, which would leave the sequence stuck on the
+  // modal step even though it already closed. Nudge it forward one step.
+  if (!state.playing) setTimeout(() => advance(), 0);
+}
+
+// Alternate path: the member closed/cancelled the Affirm modal. Affirm returns
+// the cancel_url; we send the member back to the start to pick a payment method.
+function onAffirmCancelled() {
+  if (!state.awaitingUser) return;
+  state.awaitingUser = false;
+  state.cancelling = true;            // tells advance() not to schedule the next step
+  if (state._modalResolver) { state._modalResolver(); state._modalResolver = null; }
+  logEvent('affirm', '✖ Affirm checkout cancelled — cancel_url returned', 'Member closed Affirm without confirming the loan. No VCN was issued. Returning the member to payment selection.');
+  cancelToStart();
+}
+
+// Reset back to step 1 (storefront) and prompt the member to choose a payment method.
+function cancelToStart() {
+  pause();
+  state.idx = -1;
+  state.checkoutId = null;
+  state.redirectUrl = null;
+  state.cardDetails = null;
+  closeModal();
+  $('#member-status').classList.add('hidden');
+  $('#processing').classList.add('hidden');
+  $('#thankyou').classList.add('hidden');
+  $('#choose-payment').classList.remove('hidden');
+  $('#btn-apply').disabled = false;
+  renderCurrentStep();
+  setButtons();
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Playback loop
+─────────────────────────────────────────────────────────────────── */
+async function advance() {
+  if (state.idx >= STEPS.length - 1) {
+    state.idx = STEPS.length;
+    state.playing = false;
+    renderCurrentStep();
+    setButtons();
+    return;
+  }
+  state.idx++;
+  renderCurrentStep();
+  setButtons();
+  try { await runStep(STEPS[state.idx]); } catch (e) { console.error(e); state.playing = false; setButtons(); return; }
+  if (state.cancelling) { state.cancelling = false; return; }  // modal was cancelled — flow already reset
+  if (state.playing) {
+    state.timer = setTimeout(advance, state.speedMs);
+  }
+}
+
+function play() {
+  if (state.idx >= STEPS.length - 1) return;
+  state.playing = true;
+  setButtons();
+  advance();
+}
+function pause() {
+  state.playing = false;
+  if (state.timer) clearTimeout(state.timer);
+  setButtons();
+}
+function step() {
+  if (state.playing) pause();
+  if (state.idx >= STEPS.length - 1) return;
+  advance();
+}
+function reset() {
+  pause();
+  state.idx = -1;
+  state.checkoutId = null;
+  state.redirectUrl = null;
+  state.cardDetails = null;
+  state.awaitingUser = false;
+  $('#log').innerHTML = '';
+  $('#member-status').classList.add('hidden');
+  $('#processing').classList.add('hidden');
+  $('#thankyou').classList.add('hidden');
+  $('#choose-payment').classList.add('hidden');
+  $('#btn-apply').disabled = false;
+  closeModal();
+  renderCurrentStep();
+  setButtons();
+}
+
+function setButtons() {
+  const atEnd = state.idx >= STEPS.length - 1;
+  $('#btn-step').disabled = state.playing || atEnd;
+  $('#btn-play').disabled = atEnd;
+  $('#btn-play').textContent = state.playing ? '⏸ Pause' : (state.idx === -1 ? '▶ Auto-play' : '▶ Resume');
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Wire up controls
+─────────────────────────────────────────────────────────────────── */
+buildSeqList();
+renderCurrentStep();
+
+$('#btn-play').addEventListener('click', () => state.playing ? pause() : play());
+$('#btn-step').addEventListener('click', step);
+$('#btn-reset').addEventListener('click', reset);
+$('#btn-apply').addEventListener('click', () => {
+  $('#choose-payment').classList.add('hidden');
+  if (state.idx === -1) play();
+});
+// Closing via the X is treated as a cancel (returns the cancel_url path).
+$('#btn-close-modal').addEventListener('click', () => { onAffirmCancelled(); });
+$('#affirm-confirm').addEventListener('click', () => {
+  logEvent('user', '👆 Member confirmed the Affirm loan', 'The member accepted Affirm\'s terms in the embedded checkout (happy path).');
+  onAffirmConfirmed();
+});
+$('#affirm-cancel').addEventListener('click', () => {
+  logEvent('user', '👆 Member cancelled the Affirm checkout', 'Cancel path — Affirm returns the cancel_url and the member picks another payment method.');
+  onAffirmCancelled();
+});
+$('#speed').addEventListener('input', (e) => { state.speedMs = Number(e.target.value); });
+</script>
+</body>
+</html>
