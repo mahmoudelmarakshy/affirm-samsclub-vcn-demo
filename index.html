@@ -894,6 +894,9 @@ async function runStep(step) {
 
     case 'modal_flow':
       showProcessing();
+      // If the member already confirmed during the 'open_modal' step (possible in
+      // step-by-step mode), don't re-arm the wait — just continue.
+      if (state.modalConfirmed) break;
       state.awaitingUser = true;
       // Resolved externally by onAffirmConfirmed() (happy path) or aborted by
       // onAffirmCancelled() (member closes/cancels the Affirm modal).
@@ -986,11 +989,14 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
    Modal helpers
 ─────────────────────────────────────────────────────────────────── */
 function openModal(url) {
+  state.modalOpen = true;
+  state.modalConfirmed = false;
   $('#modal-overlay').classList.remove('hidden');
   $('#modal-url').textContent = url;
   resetAffirmScreens();
 }
 function closeModal() {
+  state.modalOpen = false;
   $('#modal-overlay').classList.add('hidden');
 }
 
@@ -1070,9 +1076,14 @@ window.addEventListener('message', (ev) => {
 });
 
 function onAffirmConfirmed() {
-  if (!state.awaitingUser) return;
-  state.awaitingUser = false;
+  // Guard on the modal being open (not on awaitingUser): in step-by-step mode the
+  // modal is opened by the 'open_modal' step but the awaiting state is only armed
+  // one step later in 'modal_flow'. The member can click "Confirm loan" in between,
+  // so we must still close the modal even if awaitingUser isn't set yet.
+  if (!state.modalOpen) return;
   closeModal();
+  state.awaitingUser = false;
+  state.modalConfirmed = true;
   if (state._modalResolver) { state._modalResolver(); state._modalResolver = null; }
   // In manual (paused) mode the playback loop doesn't auto-continue after the
   // awaited modal step resolves, which would leave the sequence stuck on the
@@ -1083,7 +1094,7 @@ function onAffirmConfirmed() {
 // Alternate path: the member closed/cancelled the Affirm modal. Affirm returns
 // the cancel_url; we send the member back to the start to pick a payment method.
 function onAffirmCancelled() {
-  if (!state.awaitingUser) return;
+  if (!state.modalOpen) return;
   state.awaitingUser = false;
   state.cancelling = true;            // tells advance() not to schedule the next step
   if (state._modalResolver) { state._modalResolver(); state._modalResolver = null; }
@@ -1098,6 +1109,7 @@ function cancelToStart() {
   state.checkoutId = null;
   state.redirectUrl = null;
   state.cardDetails = null;
+  state.modalConfirmed = false;
   closeModal();
   $('#member-status').classList.add('hidden');
   $('#processing').classList.add('hidden');
@@ -1141,6 +1153,9 @@ function pause() {
   setButtons();
 }
 function step() {
+  // While the Affirm modal is armed and waiting, the Step button must not skip
+  // ahead — the member has to confirm/cancel in the modal to continue.
+  if (state.awaitingUser) return;
   if (state.playing) pause();
   if (state.idx >= STEPS.length - 1) return;
   advance();
@@ -1152,6 +1167,7 @@ function reset() {
   state.redirectUrl = null;
   state.cardDetails = null;
   state.awaitingUser = false;
+  state.modalConfirmed = false;
   $('#log').innerHTML = '';
   $('#member-status').classList.add('hidden');
   $('#processing').classList.add('hidden');
