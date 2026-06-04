@@ -317,61 +317,64 @@
     border: 0; background: transparent; padding: 0 4px; color: var(--muted); font-size: 18px; line-height: 1;
   }
   .modal iframe { flex: 1; border: 0; width: 100%; background: white; }
-  /* simulated Affirm checkout screen */
+  /* simulated Affirm checkout — Affirm 2025 look & feel (real sandbox reference) */
+  @font-face { font-family:'CalibreDemo'; src:url('https://www.affirm.com/fonts/src/calibre-regular.woff2') format('woff2'); font-weight:400; font-display:swap; }
+  @font-face { font-family:'CalibreDemo'; src:url('https://www.affirm.com/fonts/src/calibre-semibold.woff2') format('woff2'); font-weight:600; font-display:swap; }
+  @font-face { font-family:'CalibreDemo'; src:url('https://www.affirm.com/fonts/src/calibre-bold.woff2') format('woff2'); font-weight:700; font-display:swap; }
   .modal .affirm-mock {
-    flex: 1; overflow: auto; background: #fff;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    flex: 1; overflow: auto; background: #fff; color: #0C0C14;
+    font-family: 'CalibreDemo', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    display: flex; flex-direction: column;
   }
-  .afm-screen { padding: 26px 26px 22px; display: flex; flex-direction: column; gap: 13px; min-height: 100%; box-sizing: border-box; }
+  .afm-nav { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 4px; }
+  .afm-nav-logo { height: 22px; width: auto; }
+  .afm-nav-btn { border: 0; background: transparent; padding: 4px; cursor: pointer; line-height: 0; color: #0C0C14; }
+  .afm-progress { display: flex; gap: 8px; padding: 4px 18px 8px; }
+  .afm-prog-step { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+  .afm-prog-step::before { content: ''; height: 4px; border-radius: 2px; background: #E4E4EA; }
+  .afm-prog-step.done::before, .afm-prog-step.current::before { background: #4A4AF4; }
+  .afm-prog-step span { font-size: 11px; color: #8A8A95; }
+  .afm-prog-step.current span { color: #0C0C14; font-weight: 600; }
+  .afm-prog-step.done span { color: #4A4AF4; }
+  .afm-screen { padding: 8px 20px 16px; display: flex; flex-direction: column; gap: 14px; }
   .afm-screen.hidden { display: none; }
-  .afm-head { display: flex; align-items: center; justify-content: space-between; }
-  .afm-logo { font-size: 27px; font-weight: 800; color: #101820; letter-spacing: -.5px; }
-  .afm-h { font-size: 20px; font-weight: 800; color: #101820; margin: 8px 0 0; }
-  .afm-p { font-size: 13px; color: var(--muted); margin: 0; line-height: 1.5; }
-  .afm-p b { color: var(--text); }
-  .afm-code { display: flex; gap: 8px; margin-top: 6px; }
+  .afm-h1 { font-size: 24px; font-weight: 600; color: #0C0C14; margin: 2px 0 0; letter-spacing: -.2px; }
+  .afm-sub { font-size: 14.5px; color: #5B5B66; margin: 0; line-height: 1.45; }
+  .afm-code { display: flex; gap: 8px; margin-top: 2px; }
   .afm-code span {
-    flex: 1; height: 52px; border: 1.5px solid var(--border); border-radius: 10px;
-    display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; color: #101820;
+    flex: 1; height: 52px; border: 1.5px solid #DADAE2; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 600; color: #0C0C14;
   }
-  .afm-code span.filled { border-color: var(--affirm-accent); }
-  .afm-resend { font-size: 12px; color: var(--muted); }
-  .afm-resend a { color: var(--affirm-accent); font-weight: 600; }
-  .afm-verified {
-    font-size: 11px; font-weight: 700; color: var(--success); background: #EAF7F0;
-    border: 1px solid #BFE6D2; padding: 3px 10px; border-radius: 999px;
-  }
-  .afm-merchant { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .afm-amount-val { font-size: 36px; font-weight: 800; color: #101820; line-height: 1; }
-  .afm-amount-label { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .afm-section-label { font-size: 12px; font-weight: 700; color: #101820; margin-top: 6px; }
-  .afm-plan { display: flex; flex-direction: column; gap: 10px; }
-  .afm-plan-row {
-    display: flex; align-items: center; justify-content: space-between;
-    border: 1.5px solid var(--border); border-radius: 12px; padding: 13px 15px; cursor: pointer;
-  }
-  .afm-plan-row.afm-selected { border-color: var(--affirm-accent); background: #F2F2FE; }
-  .afm-plan-mo { font-size: 18px; font-weight: 800; color: #101820; }
-  .afm-plan-mo span { font-size: 12px; font-weight: 600; color: var(--muted); }
-  .afm-plan-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .afm-radio { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #C8D0DC; position: relative; flex-shrink: 0; }
-  .afm-radio.on { border-color: var(--affirm-accent); }
-  .afm-radio.on::after { content: ''; position: absolute; inset: 3px; border-radius: 50%; background: var(--affirm-accent); }
-  .afm-schedule { border-top: 1px solid var(--border); padding-top: 12px; display: flex; flex-direction: column; gap: 7px; }
-  .afm-sched-row { display: flex; justify-content: space-between; font-size: 13px; }
-  .afm-sched-row .k { color: var(--muted); }
-  .afm-sched-row .v { color: var(--text); font-weight: 600; }
-  .afm-sched-row.total .k, .afm-sched-row.total .v { color: #101820; font-weight: 800; }
-  .afm-sched-row.first .k, .afm-sched-row.first .v { color: var(--affirm-accent); font-weight: 700; }
-  .afm-confirm {
-    margin-top: auto; background: var(--affirm-accent); color: #fff; border: 0; border-radius: 999px;
-    padding: 15px; font-size: 15px; font-weight: 700; cursor: pointer;
-  }
-  .afm-confirm:hover { background: #3a3ad0; }
-  .afm-cancel {
-    background: transparent; border: 0; color: var(--muted); font-size: 13px; padding: 2px; cursor: pointer;
-  }
-  .afm-legal { font-size: 10.5px; color: var(--muted); line-height: 1.45; text-align: center; }
+  .afm-code span.filled { border-color: #4A4AF4; }
+  .afm-resend { font-size: 13px; color: #5B5B66; }
+  .afm-resend a { color: #4A4AF4; font-weight: 600; }
+  .afm-amount { display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid #ECECF1; }
+  .afm-amount-k { font-size: 14px; color: #5B5B66; }
+  .afm-amount-v { font-size: 20px; font-weight: 700; color: #0C0C14; }
+  .afm-plan { display: flex; flex-direction: column; gap: 12px; }
+  .afm-plan-row { display: flex; align-items: flex-start; gap: 12px; border: 1.5px solid #DADAE2; border-radius: 14px; padding: 14px 16px; cursor: pointer; transition: border-color .12s; }
+  .afm-plan-row.afm-selected { border-color: #0C0C14; border-width: 2px; padding: 13px 15px; }
+  .afm-radio { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #C4C4CE; position: relative; flex-shrink: 0; margin-top: 2px; }
+  .afm-radio.on { border-color: #0C0C14; }
+  .afm-radio.on::after { content: ''; position: absolute; inset: 3px; border-radius: 50%; background: #0C0C14; }
+  .afm-plan-body { display: flex; flex-direction: column; gap: 4px; }
+  .afm-badge { align-self: flex-start; font-size: 11px; font-weight: 600; color: #4A4AF4; background: #ECECFF; padding: 2px 8px; border-radius: 6px; }
+  .afm-badge.alt { color: #0B7A52; background: #E5F6EE; }
+  .afm-plan-mo { font-size: 15px; color: #0C0C14; }
+  .afm-plan-mo b { font-size: 18px; font-weight: 700; }
+  .afm-plan-sub { font-size: 12.5px; color: #74747F; }
+  .afm-total { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+  .afm-total-v { font-weight: 700; font-size: 16px; }
+  .afm-btn { background: #000049; color: #fff; border: 0; border-radius: 999px; padding: 15px; font-size: 16px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .afm-btn:hover { background: #10104f; }
+  .afm-cancel { background: transparent; border: 0; color: #5B5B66; font-size: 14px; padding: 2px; cursor: pointer; font-family: inherit; }
+  .afm-cancel:hover { color: #0C0C14; }
+  .afm-fineprint { font-size: 12px; color: #74747F; line-height: 1.45; margin: 0; text-align: center; }
+  .afm-fineprint a { color: #4A4AF4; }
+  .afm-sandbox { margin: auto 16px 14px; background: #F4F4F7; border-radius: 12px; padding: 12px 14px; display: flex; gap: 10px; align-items: flex-start; }
+  .afm-sandbox svg { flex-shrink: 0; margin-top: 1px; }
+  .afm-sandbox-t { font-size: 12.5px; color: #3A3A45; line-height: 1.45; }
+  .afm-sandbox-t b { color: #0C0C14; }
   .modal .status-bar {
     padding: 8px 12px; border-top: 1px solid #D5D9DF; background: #FAFBFD;
     font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 8px;
@@ -513,48 +516,82 @@
       <button class="close-modal" id="btn-close-modal" title="Close">×</button>
     </div>
     <div class="affirm-mock" id="affirm-mock">
+      <!-- Affirm top navigation -->
+      <div class="afm-nav">
+        <button class="afm-nav-btn" id="afm-nav-close" aria-label="Cancel" title="Cancel">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 01-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" fill="#0C0C14"/></svg>
+        </button>
+        <svg class="afm-nav-logo" viewBox="0 0 175.3 69.9" role="img" aria-label="Affirm">
+          <path fill="#101820" d="M14.4 39.4c-4.7 0-10.2 2.2-13.2 4.6l2.7 5.7c2.4-2.2 6.2-4 9.7-4 3.3 0 5.1 1.1 5.1 3.3 0 1.5-1.2 2.2-3.5 2.5C6.7 52.6 0 54.9 0 61.5c0 5.2 3.7 8.4 9.5 8.4 4.1 0 7.8-2.3 9.6-5.3V69h7.7V50.2c0-7.7-5.4-10.8-12.4-10.8zm-2.9 24.4c-2.2 0-3.2-1.1-3.2-2.8 0-3.3 3.6-4.4 10.3-5.1 0 4.4-3 7.9-7.1 7.9zM91.7 40.2V69h8.2V55.1c0-6.6 4-8.5 6.8-8.5 1.1 0 2.6.3 3.5 1l1.5-7.6c-1.3-.5-2.6-.7-3.7-.7-4.2 0-6.9 1.9-8.7 5.7v-4.8h-7.6zM150 39.4c-4.4 0-7.6 2.6-9.3 5.1a9.6 9.6 0 00-8.9-5.1 9.5 9.5 0 00-8.8 5.2v-4.4h-7.9V69h8.2V54.2c0-5.3 2.8-7.9 5.4-7.9 2.4 0 4.5 1.5 4.5 5.5V69h8.2V54.2c0-5.4 2.7-7.9 5.4-7.9 2.2 0 4.5 1.6 4.5 5.4V69h8.2V49.1c.1-6.5-4.2-9.7-9.5-9.7zM71.7 40.2h-7.5v-2.9c0-3.8 2.2-4.9 4.1-4.9 2.1 0 3.7.9 3.7.9l2.5-5.8s-2.6-1.7-7.3-1.7c-5.3 0-11.3 3-11.3 12.3v2.1H43.5v-2.9c0-3.8 2.2-4.9 4.1-4.9 1.1 0 2.5.2 3.7.9l2.5-5.8c-1.5-.9-4-1.7-7.3-1.7-5.3 0-11.3 3-11.3 12.3v2.1h-4.8v6.4h4.8V69h8.2V46.6H56V69h8.2V46.6h7.5v-6.4zM76.6 40.2h8.2V69h-8.2z"/>
+          <path fill="#4A4AF4" d="M124.6 0a50.2 50.2 0 00-47.7 35.3H85a42.2 42.2 0 0139.6-27.8c23.1 0 43 17.6 43 44.9a57 57 0 01-2.3 16.6h7.8l.1-.3a65 65 0 001.9-16.3A50.3 50.3 0 00124.6 0z"/>
+        </svg>
+        <button class="afm-nav-btn" aria-label="Help" title="Help">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2.75a9.25 9.25 0 100 18.5 9.25 9.25 0 000-18.5zM1.25 12C1.25 6.063 6.063 1.25 12 1.25S22.75 6.063 22.75 12 17.937 22.75 12 22.75 1.25 17.937 1.25 12zM13 16a1 1 0 11-2 0 1 1 0 012 0zm-2.25-6a1.25 1.25 0 112.5 0v.121c0 .364-.145.713-.402.97L11.47 12.47a.75.75 0 101.06 1.06l1.379-1.378a2.871 2.871 0 00.841-2.03V10a2.75 2.75 0 10-5.5 0v.5a.75.75 0 001.5 0V10z" fill="#0C0C14"/></svg>
+        </button>
+      </div>
+
+      <!-- 3-step progress bar -->
+      <div class="afm-progress" id="afm-progress">
+        <div class="afm-prog-step current"><span>Verify</span></div>
+        <div class="afm-prog-step"><span>Pick a plan</span></div>
+        <div class="afm-prog-step"><span>Review details</span></div>
+      </div>
+
       <!-- Step 1: SMS verification -->
       <div class="afm-screen" id="afm-screen-verify">
-        <div class="afm-logo">affirm</div>
-        <h3 class="afm-h">Let's verify it's you</h3>
-        <p class="afm-p">Enter the code we texted to <b>(•••) •••-3729</b> to continue your purchase with Affirm.</p>
+        <h1 class="afm-h1">Verify it's you</h1>
+        <p class="afm-sub">Enter the code we texted to <b>(•••) •••-3729</b> to continue your purchase with Affirm.</p>
         <div class="afm-code">
           <span class="filled">1</span><span class="filled">2</span><span class="filled">3</span><span class="filled">4</span><span class="filled">5</span><span class="filled">6</span>
         </div>
         <div class="afm-resend">Didn't get a code? <a>Resend</a></div>
-        <button class="afm-confirm" id="afm-continue">Continue</button>
-        <div class="afm-legal">Sandbox verification — code is prefilled for this demo. No SMS is actually sent.</div>
+        <button class="afm-btn" id="afm-continue">Continue</button>
+        <p class="afm-fineprint">Sandbox verification — code is prefilled for this demo. No SMS is sent. Type "123456" for the verification pin.</p>
       </div>
 
-      <!-- Step 2: review terms & confirm -->
+      <!-- Step 2: pick a plan -->
       <div class="afm-screen hidden" id="afm-screen-terms">
-        <div class="afm-head">
-          <div class="afm-logo">affirm</div>
-          <div class="afm-verified">✓ Verified</div>
+        <div class="afm-amount">
+          <span class="afm-amount-k">Purchase amount</span>
+          <span class="afm-amount-v" id="afm-amount-val">$1,016.18</span>
         </div>
-        <div class="afm-amount-val">$1,016.18</div>
-        <div class="afm-amount-label">Total purchase at Sam's Club</div>
-        <div class="afm-section-label">Choose how to pay</div>
+        <h1 class="afm-h1">Choose a payment plan</h1>
+        <p class="afm-sub">We're not big on fees, so we don't charge any.</p>
         <div class="afm-plan" id="afm-plan">
-          <div class="afm-plan-row afm-selected" data-plan="p12">
-            <div class="afm-plan-left">
-              <div class="afm-plan-mo">$85.00<span>/mo</span></div>
-              <div class="afm-plan-sub">12 months · 15% APR</div>
-            </div>
+          <div class="afm-plan-row afm-selected" data-plan="p6">
             <div class="afm-radio on"></div>
-          </div>
-          <div class="afm-plan-row" data-plan="p6">
-            <div class="afm-plan-left">
-              <div class="afm-plan-mo">$169.36<span>/mo</span></div>
-              <div class="afm-plan-sub">6 months · 0% APR</div>
+            <div class="afm-plan-body">
+              <span class="afm-badge">0% APR</span>
+              <div class="afm-plan-mo"><b>$169.36</b> every month for 6 months</div>
+              <div class="afm-plan-sub">$0 interest · $0 due today</div>
             </div>
+          </div>
+          <div class="afm-plan-row" data-plan="p12">
             <div class="afm-radio"></div>
+            <div class="afm-plan-body">
+              <div class="afm-plan-mo"><b>$99.06</b> every month for 12 months</div>
+              <div class="afm-plan-sub">$172.60 interest · $0 due today</div>
+            </div>
+          </div>
+          <div class="afm-plan-row" data-plan="p18">
+            <div class="afm-radio"></div>
+            <div class="afm-plan-body">
+              <span class="afm-badge alt">Lowest monthly payment</span>
+              <div class="afm-plan-mo"><b>$70.80</b> every month for 18 months</div>
+              <div class="afm-plan-sub">$258.10 interest · $0 due today</div>
+            </div>
           </div>
         </div>
-        <div class="afm-schedule" id="afm-schedule"></div>
-        <button class="afm-confirm" id="affirm-confirm">Confirm loan</button>
-        <button class="afm-cancel" id="affirm-cancel">Cancel</button>
-        <div class="afm-legal">Your total, APR and payment schedule are shown above. Simulated checkout for demonstration only — no real loan is created and no data is sent anywhere.</div>
+        <div class="afm-total"><span>Total of payments</span><span class="afm-total-v">$1,016.18</span></div>
+        <p class="afm-fineprint"><a>Plans are subject</a> to final eligibility and approval.</p>
+        <button class="afm-btn" id="affirm-confirm">Choose this plan</button>
+        <button class="afm-cancel" id="affirm-cancel">Cancel and pay another way</button>
+      </div>
+
+      <!-- Sandbox banner (matches the real Affirm developer sandbox notice) -->
+      <div class="afm-sandbox">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2.75a9.25 9.25 0 100 18.5 9.25 9.25 0 000-18.5zM1.25 12C1.25 6.063 6.063 1.25 12 1.25S22.75 6.063 22.75 12 17.937 22.75 12 22.75 1.25 17.937 1.25 12zM12 10.25a.75.75 0 01.75.75v5a.75.75 0 01-1.5 0v-5a.75.75 0 01.75-.75zM12 9a1 1 0 100-2 1 1 0 000 2z" fill="#0C0C14"/></svg>
+        <div class="afm-sandbox-t"><b>You are currently using the Affirm Developer Sandbox.</b> This checkout does not create real loans. Type "123456" for the verification pin.</div>
       </div>
     </div>
     <div class="status-bar">
@@ -1001,25 +1038,14 @@ function closeModal() {
   $('#modal-overlay').classList.add('hidden');
 }
 
-/* Simulated Affirm checkout — two screens (verify → review & confirm). */
-const AFM_PLANS = {
-  p12: { schedule: [
-    ['Total purchase', '$1,016.18'],
-    ['Interest (15% APR)', '$83.82'],
-    ['Total with interest', '$1,100.00', 'total'],
-    ['First payment due Jul 2', '$85.00', 'first']
-  ]},
-  p6: { schedule: [
-    ['Total purchase', '$1,016.18'],
-    ['Interest (0% APR)', '$0.00'],
-    ['Total with interest', '$1,016.18', 'total'],
-    ['First payment due Jul 2', '$169.36', 'first']
-  ]}
-};
-function renderAffirmSchedule(planKey) {
-  const plan = AFM_PLANS[planKey] || AFM_PLANS.p12;
-  $('#afm-schedule').innerHTML = plan.schedule.map(([k, v, cls]) =>
-    `<div class="afm-sched-row ${cls || ''}"><span class="k">${escapeHtml(k)}</span><span class="v">${escapeHtml(v)}</span></div>`).join('');
+/* Simulated Affirm checkout — Affirm 2025 look (verify → pick a plan).
+   Plan figures mirror the real Affirm sandbox response for a $1,016.18 cart. */
+function setAfmProgress(active) {
+  const order = { verify: 0, plan: 1, review: 2 }[active] ?? 0;
+  $$('#afm-progress .afm-prog-step').forEach((el, i) => {
+    el.classList.toggle('current', i === order);
+    el.classList.toggle('done', i < order);
+  });
 }
 function selectAffirmPlan(row) {
   $$('#afm-plan .afm-plan-row').forEach(r => {
@@ -1027,11 +1053,11 @@ function selectAffirmPlan(row) {
     r.classList.toggle('afm-selected', on);
     r.querySelector('.afm-radio').classList.toggle('on', on);
   });
-  renderAffirmSchedule(row.dataset.plan);
 }
 function resetAffirmScreens() {
   $('#afm-screen-verify').classList.remove('hidden');
   $('#afm-screen-terms').classList.add('hidden');
+  setAfmProgress('verify');
   const first = $('#afm-plan .afm-plan-row');
   if (first) selectAffirmPlan(first);
 }
@@ -1205,7 +1231,10 @@ $('#btn-close-modal').addEventListener('click', () => { onAffirmCancelled(); });
 $('#afm-continue').addEventListener('click', () => {
   $('#afm-screen-verify').classList.add('hidden');
   $('#afm-screen-terms').classList.remove('hidden');
+  setAfmProgress('plan');
 });
+// The Affirm nav "×" cancels the checkout (returns the cancel_url path).
+$('#afm-nav-close').addEventListener('click', () => { onAffirmCancelled(); });
 $$('#afm-plan .afm-plan-row').forEach(r => r.addEventListener('click', () => selectAffirmPlan(r)));
 $('#affirm-confirm').addEventListener('click', () => {
   logEvent('user', '👆 Member confirmed the Affirm loan', 'The member accepted Affirm\'s terms in the embedded checkout (happy path).');
