@@ -720,10 +720,7 @@ const STEPS = [
     desc: 'Frontend notifies backend that the Affirm flow finished and passes the checkout_id along so the backend can fetch the card.', kind: 'fe_to_be' },
 
   { actors: ['scbe', 'afbe'], label: 'Backend → Affirm: GET /api/v2/cards/{checkout_id}',
-    desc: 'For a VCN merchant, the backend exchanges the checkout_id for a one-time virtual card via the Read Card API. This is what gets run through the existing card processor.', kind: 'api_card' },
-
-  { actors: ['afbe', 'scbe'], label: 'Affirm returns encrypted VCN card details',
-    desc: 'Affirm responds with the virtual card. For the Sam\'s Club / Walmart TSS integration the number and CVV come back as a JSON string of { TSS-WMTEXT-CONSUMERID, jwt } — encrypted (JWE, RSA-OAEP-256 + A256GCM) with the TSS-provided RSA public key. expiration is returned in plaintext.', kind: 'api_card_response' },
+    desc: 'For a VCN merchant, the backend exchanges the checkout_id for a one-time virtual card via the Read Card API, and Affirm returns the encrypted VCN card details. The number and CVV come back as a JSON string of { TSS-WMTEXT-CONSUMERID, jwt } — encrypted (JWE, RSA-OAEP-256 + A256GCM) with the TSS-provided RSA public key — while expiration is returned in plaintext. This card is what gets run through the existing card processor.', kind: 'api_card' },
 
   { actors: ['scbe', 'scbe'], label: 'Sam\'s Club decrypts the VCN via Walmart TSS',
     desc: 'Before authorization, the Sam\'s Club backend uses the TSS-WMTEXT-CONSUMERID to call Walmart\'s Token Security Service (TSS) and decrypt the number and CVV, producing the usable virtual card (expiration was already in plaintext).', kind: 'decrypt_card' },
@@ -953,19 +950,9 @@ async function runStep(step) {
         response: CARD_RESPONSE, status: 200, durationMs: dt,
         note: `VCN issued for the completed loan. number and cvv come back ENCRYPTED — each a JSON string of { TSS-WMTEXT-CONSUMERID, jwt } (JWE) for the Walmart TSS integration; expiration is plaintext. Sam's Club decrypts number & cvv next, before authorization. charge_ari=${CARD_RESPONSE.charge_ari}`
       });
+      logEvent('affirm', '◀ Affirm-BE returned encrypted VCN card details', 'number & cvv come back TSS-encrypted (JWE); expiration is plaintext. Sam\'s Club decrypts them via Walmart TSS next, before authorization.');
       break;
     }
-
-    case 'api_card_response':
-      logBlock('affirm', '◀ Affirm-BE returned card · number & cvv TSS-encrypted (JWE), expiration plaintext', {
-        checkout_token: state.cardDetails?.checkout_token,
-        number: ENCRYPTED_CARD_SAMPLE.number,
-        cvv: ENCRYPTED_CARD_SAMPLE.cvv,
-        expiration: ENCRYPTED_CARD_SAMPLE.expiration,
-        cardholder_name: state.cardDetails?.cardholder_name,
-        charge_ari: state.cardDetails?.charge_ari
-      }, 'number and cvv arrive as a JSON string of { TSS-WMTEXT-CONSUMERID, jwt }: the consumer id (affirm.tss.stage.walmart.com) tells Sam\'s Club which TSS tenant to call; the jwt is the JWE (RSA-OAEP-256 + A256GCM). expiration is plaintext. Sam\'s Club passes the consumer id + jwt to Walmart TSS to decrypt before authorization.');
-      break;
 
     case 'decrypt_card': {
       logDivider('Walmart TSS · decrypt VCN');
