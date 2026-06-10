@@ -714,7 +714,7 @@ const STEPS = [
     desc: 'Sam\'s Club embeds Affirm\'s hosted checkout in an iframe modal. The member never leaves samsclub.com.', kind: 'open_modal' },
 
   { actors: ['member', 'affe'], label: 'Member confirms loan — Affirm modal closes',
-    desc: 'Happy path: inside the iframe the member confirms Affirm\'s loan terms (sandbox PIN 123456). Affirm posts the result to user_confirmation_url, the modal closes automatically, and the order proceeds. Alternate path: if the member closes/cancels, Affirm returns the cancel_url and the member is sent back to choose a payment method.', kind: 'modal_flow', wait: true },
+    desc: 'Happy path: inside the iframe the member confirms Affirm\'s loan terms (sandbox PIN 123456). Affirm POSTs (form-urlencoded) to the user_confirmation_url from the checkout object, returning the checkout_id (as the checkout_token field); the modal closes automatically and the order proceeds. Alternate path: if the member closes/cancels, Affirm returns the cancel_url and the member is sent back to choose a payment method.', kind: 'modal_flow', wait: true },
 
   { actors: ['scfe', 'scbe'], label: 'Frontend → Backend: update payment with checkout_id',
     desc: 'Frontend notifies backend that the Affirm flow finished and passes the checkout_id along so the backend can fetch the card.', kind: 'fe_to_be' },
@@ -856,6 +856,18 @@ function logBlock(kind, title, obj, note) {
     <div class="log-entry">
       <div class="head"><span class="endpoint">${escapeHtml(title)}</span></div>
       <pre class="json">${syntaxJson(obj)}</pre>
+      ${note ? `<div class="note">${escapeHtml(note)}</div>` : ''}
+    </div>`);
+  log.scrollTop = log.scrollHeight;
+}
+
+// Renders a raw HTTP request/response sample (preserves newlines, no JSON quoting).
+function logHttp(kind, title, raw, note) {
+  const log = $('#log');
+  log.insertAdjacentHTML('beforeend', `
+    <div class="log-entry">
+      <div class="head"><span class="endpoint">${escapeHtml(title)}</span></div>
+      <pre class="json">${escapeHtml(raw)}</pre>
       ${note ? `<div class="note">${escapeHtml(note)}</div>` : ''}
     </div>`);
   log.scrollTop = log.scrollHeight;
@@ -1096,6 +1108,13 @@ function onAffirmConfirmed() {
   // one step later in 'modal_flow'. The member can click "Confirm loan" in between,
   // so we must still close the modal even if awaitingUser isn't set yet.
   if (!state.modalOpen) return;
+  // When the member completes the loan, Affirm POSTs (form-urlencoded) to the
+  // user_confirmation_url from the checkout object, returning the checkout_id
+  // (sent as the checkout_token field). Sam's Club uses it to read the VCN next.
+  const confUrl = CHECKOUT_PAYLOAD.merchant.user_confirmation_url;
+  logHttp('affirm', '◀ Affirm POSTs to user_confirmation_url (member completed the loan)',
+    `POST ${confUrl}\nContent-Type: application/x-www-form-urlencoded\n\ncheckout_token=${state.checkoutId}`,
+    'Affirm POSTs back to the user_confirmation_url passed in the checkout object once the member confirms. The body returns the checkout_id (sent as the checkout_token field) — this is what Sam\'s Club exchanges for the VCN via GET /api/v2/cards/{checkout_id} next.');
   closeModal();
   state.awaitingUser = false;
   state.modalConfirmed = true;
