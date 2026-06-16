@@ -269,6 +269,14 @@
     padding: 8px 12px; background: #FFFBEB; border-top: 1px solid #FAE5A3;
     font-size: 11px; color: #6B4F00;
   }
+  .log-docs {
+    padding: 6px 12px; background: #EEF2FF; border-top: 1px solid #C7D2FE;
+    font-size: 11px; color: #3730A3;
+  }
+  .log-event .log-docs { border-top: 0; background: transparent; padding: 4px 0 0; }
+  .log-docs a { color: #4A4AF4; text-decoration: none; font-weight: 600; }
+  .log-docs a:hover { text-decoration: underline; }
+  .log-docs .doc-sep { margin: 0 6px; color: #A5B4FC; }
 
   .log-divider {
     display: flex; align-items: center; gap: 10px; margin: 12px 0 8px;
@@ -822,16 +830,25 @@ function logDivider(text) {
   log.insertAdjacentHTML('beforeend', `<div class="log-divider">${escapeHtml(text)}</div>`);
   log.scrollTop = log.scrollHeight;
 }
-function logEvent(kind, title, detail = '') {
+// Renders a row of "Affirm docs" links. `docs` is an array of { label, url }.
+function docsHtml(docs) {
+  if (!docs || !docs.length) return '';
+  const links = docs
+    .map(d => `<a href="${escapeHtml(d.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(d.label)}</a>`)
+    .join('<span class="doc-sep">·</span>');
+  return `<div class="log-docs">📖 Affirm docs: ${links}</div>`;
+}
+function logEvent(kind, title, detail = '', docs) {
   const log = $('#log');
   log.insertAdjacentHTML('beforeend', `
     <div class="log-event ${kind}">
       <div class="ev-title">${escapeHtml(title)}</div>
       ${detail ? `<div class="ev-detail">${escapeHtml(detail)}</div>` : ''}
+      ${docsHtml(docs)}
     </div>`);
   log.scrollTop = log.scrollHeight;
 }
-function logApi({ method, endpoint, payload, response, status, durationMs, note }) {
+function logApi({ method, endpoint, payload, response, status, durationMs, note, docs }) {
   const log = $('#log');
   const okClass = status >= 200 && status < 300 ? 'ok' : 'err';
   const html = `
@@ -845,30 +862,33 @@ function logApi({ method, endpoint, payload, response, status, durationMs, note 
       ${payload  ? `<pre class="json">▼ Request body\n${syntaxJson(payload)}</pre>` : ''}
       ${response ? `<pre class="json">▲ Response body\n${syntaxJson(response)}</pre>` : ''}
       ${note ? `<div class="note">${escapeHtml(note)}</div>` : ''}
+      ${docsHtml(docs)}
     </div>`;
   log.insertAdjacentHTML('beforeend', html);
   log.scrollTop = log.scrollHeight;
 }
 
-function logBlock(kind, title, obj, note) {
+function logBlock(kind, title, obj, note, docs) {
   const log = $('#log');
   log.insertAdjacentHTML('beforeend', `
     <div class="log-entry">
       <div class="head"><span class="endpoint">${escapeHtml(title)}</span></div>
       <pre class="json">${syntaxJson(obj)}</pre>
       ${note ? `<div class="note">${escapeHtml(note)}</div>` : ''}
+      ${docsHtml(docs)}
     </div>`);
   log.scrollTop = log.scrollHeight;
 }
 
 // Renders a raw HTTP request/response sample (preserves newlines, no JSON quoting).
-function logHttp(kind, title, raw, note) {
+function logHttp(kind, title, raw, note, docs) {
   const log = $('#log');
   log.insertAdjacentHTML('beforeend', `
     <div class="log-entry">
       <div class="head"><span class="endpoint">${escapeHtml(title)}</span></div>
       <pre class="json">${escapeHtml(raw)}</pre>
       ${note ? `<div class="note">${escapeHtml(note)}</div>` : ''}
+      ${docsHtml(docs)}
     </div>`);
   log.scrollTop = log.scrollHeight;
 }
@@ -922,7 +942,11 @@ async function runStep(step) {
       logApi({
         method: 'POST', endpoint: '/api/v2/checkout/direct',
         payload: CHECKOUT_PAYLOAD, response: body, status: 200, durationMs: dt,
-        note: `Checkout created (simulated). checkout_id=${body.checkout_id} is used later to read the VCN. The redirect_url opens in the Affirm modal next.`
+        note: `Checkout created (simulated). checkout_id=${body.checkout_id} is used later to read the VCN. The redirect_url opens in the Affirm modal next.`,
+        docs: [
+          { label: 'Direct Checkout API', url: 'https://docs.affirm.com/developers/docs/modal-with-direct-checkout' },
+          { label: 'The Checkout Object', url: 'https://docs.affirm.com/developers/reference/the-checkout-object' }
+        ]
       });
       break;
     }
@@ -937,7 +961,10 @@ async function runStep(step) {
       $('#member-status-val').textContent = 'Affirm checkout modal open · waiting for member to complete the loan flow.';
       // Logged here (on modal open) so it always precedes the "Loan confirmed"
       // entry, even if the member completes the loan before this step advances.
-      logEvent('user', '⏳ Awaiting member action inside the Affirm modal', 'The member reviews and confirms Affirm\'s loan terms in the embedded checkout. Click "Confirm loan" to continue down the happy path, or "Cancel and go back" to take the cancel path.');
+      logEvent('user', '⏳ Awaiting member action inside the Affirm modal', 'The member reviews and confirms Affirm\'s loan terms in the embedded checkout. Click "Confirm loan" to continue down the happy path, or "Cancel and go back" to take the cancel path.', [
+        { label: 'Modal with Direct Checkout', url: 'https://docs.affirm.com/developers/docs/modal-with-direct-checkout' },
+        { label: 'Modal vs. Redirect Checkout', url: 'https://docs.affirm.com/developers/docs/modal-vs-redirect-checkout' }
+      ]);
       break;
 
     case 'modal_flow':
@@ -960,7 +987,11 @@ async function runStep(step) {
       logApi({
         method: 'GET', endpoint: `/api/v2/cards/${state.checkoutId}`,
         response: CARD_RESPONSE, status: 200, durationMs: dt,
-        note: `VCN issued for the completed loan. number and cvv come back ENCRYPTED — each a JSON string of { TSS-WMTEXT-CONSUMERID, jwt } (JWE) for the Walmart TSS integration; expiration is plaintext. Sam's Club decrypts number & cvv next, before authorization. charge_ari=${CARD_RESPONSE.charge_ari}`
+        note: `VCN issued for the completed loan. number and cvv come back ENCRYPTED — each a JSON string of { TSS-WMTEXT-CONSUMERID, jwt } (JWE) for the Walmart TSS integration; expiration is plaintext. Sam's Club decrypts number & cvv next, before authorization. charge_ari=${CARD_RESPONSE.charge_ari}`,
+        docs: [
+          { label: 'Read Card Details', url: 'https://docs.affirm.com/developers/docs/read-card-details' },
+          { label: 'Read Card API reference', url: 'https://docs.affirm.com/developers/v1.0-Global-Integration/reference/read_card' }
+        ]
       });
       logEvent('affirm', '◀ Affirm-BE returned encrypted VCN card details', 'number & cvv come back TSS-encrypted (JWE); expiration is plaintext. Sam\'s Club decrypts them via Walmart TSS next, before authorization.');
       break;
@@ -974,7 +1005,10 @@ async function runStep(step) {
         number: card.number ? maskPan(card.number) : '•••• •••• •••• ••••',
         cvv: '***',
         expiration: card.expiration || 'MMYY'
-      }, 'Decrypted on the Sam\'s Club backend (JWE → plaintext) using the TSS key. The usable virtual card is now ready to run through the existing card processor — no plaintext PAN is exposed to the frontend.');
+      }, 'Decrypted on the Sam\'s Club backend (JWE → plaintext) using the TSS key. The usable virtual card is now ready to run through the existing card processor — no plaintext PAN is exposed to the frontend.', [
+        { label: 'Read Card Details', url: 'https://docs.affirm.com/developers/docs/read-card-details' },
+        { label: 'Managing Cards (VCN)', url: 'https://docs.affirm.com/developers/docs/managing-cards' }
+      ]);
       break;
     }
 
@@ -1000,7 +1034,10 @@ async function runStep(step) {
         },
         response: { approved: true, processor_txn_id: 'PP-' + Math.random().toString(36).slice(2, 10).toUpperCase(), avs: 'Y', cvv_check: 'M' },
         status: 200, durationMs: dt,
-        note: 'Simulated processor call using the decrypted VCN. From the processor\'s POV this is a normal card auth — Affirm involvement is invisible.'
+        note: 'Simulated processor call using the decrypted VCN. From the processor\'s POV this is a normal card auth — Affirm involvement is invisible.',
+        docs: [
+          { label: 'Managing Cards (VCN)', url: 'https://docs.affirm.com/developers/docs/managing-cards' }
+        ]
       });
       break;
     }
@@ -1114,7 +1151,11 @@ function onAffirmConfirmed() {
   const confUrl = CHECKOUT_PAYLOAD.merchant.user_confirmation_url;
   logHttp('affirm', '◀ Affirm POSTs to user_confirmation_url (member completed the loan)',
     `POST ${confUrl}\nContent-Type: application/x-www-form-urlencoded\n\ncheckout_token=${state.checkoutId}`,
-    'Affirm POSTs back to the user_confirmation_url passed in the checkout object once the member confirms. The body returns the checkout_id (sent as the checkout_token field) — this is what Sam\'s Club exchanges for the VCN via GET /api/v2/cards/{checkout_id} next.');
+    'Affirm POSTs back to the user_confirmation_url passed in the checkout object once the member confirms. The body returns the checkout_id (sent as the checkout_token field) — this is what Sam\'s Club exchanges for the VCN via GET /api/v2/cards/{checkout_id} next.',
+    [
+      { label: 'The Merchant Object', url: 'https://docs.affirm.com/developers/reference/the-merchant-object' },
+      { label: 'Modal vs. Redirect Checkout', url: 'https://docs.affirm.com/developers/docs/modal-vs-redirect-checkout' }
+    ]);
   closeModal();
   state.awaitingUser = false;
   state.modalConfirmed = true;
