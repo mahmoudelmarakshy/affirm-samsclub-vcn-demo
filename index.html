@@ -625,41 +625,43 @@ const CHECKOUT_RESPONSE = {
 };
 
 // Canned Read Card response (test data, no real PII). For the Sam's Club /
-// Walmart TSS integration, number and cvv come back ENCRYPTED as a JSON string
-// of { TSS-WMTEXT-CONSUMERID, jwt } (JWE, RSA-OAEP-256 + A256GCM). The consumer
-// id tells Sam's Club which TSS tenant to call to decrypt. expiration is returned
-// in plaintext (MMYY). Values below mirror the real sandbox Read Card response.
+// Walmart TSS integration the sensitive card data comes back in `paymentToken` —
+// a Sam's Club-specific field that is a TSS-encrypted JSON string of
+// { TSS-WMTEXT-CONSUMERID, jwt } (JWE, RSA-OAEP-256 + A256GCM). The consumer id
+// tells Sam's Club which TSS tenant to call to decrypt. Values below mirror the
+// real sandbox Read Card response.
 const CARD_RESPONSE = {
   checkout_token: '0WJ31DSCZB3OPTIN',
   created: '2026-05-21T22:39:37.881000',
   charge_ari: 'MFFO-VIIT',
-  callback_id: '32f90102-abf3-43b0-b3f0-d1987c5d46e4',
-  number: '{"TSS-WMTEXT-CONSUMERID":"affirm.tss.stage.walmart.com","jwt":"eyJhbGciOiAiUlNBLU9BRVAtMjU2IiwgImVuYyI6ICJBMjU2R0NNIn0.OUY9ZLBpkilOJQFpjhSagHzd_YnF4OU0Kvnk36F4V7GXLuV5JrAxtsJrZzhlq2bGfhsEFR8csJDxx0wZA2By1lZCvjcMYJw63RWLOpIYxYYtzvYnADiqSvJKj8q9JnGHbM_xZIwgk9ITUFij1s3eqLjUZfNJK3NbGg8sBcixC2x39YOeIiJgtH908KyDFRh8blyZVezoD2jm7q-6B3mR3mv6hzcLamcovtCJOJAUNHgpU9LPjKV0qLzc4EM1P1oQ84AkHLZs4_XNVu6hep64LhfQvCBPNqtDvEaxVUSYoC-aDswzngnM-HWQp9w5rtFm8BAg7ddtNPfl9V9ByxttHg.fL_BCcP63kEpJONo.UcW-z8fFQHyP-Fkjm2N4eA.YKbm2kPuqqLnSvb-DljikA"}',
-  cvv: '{"TSS-WMTEXT-CONSUMERID":"affirm.tss.stage.walmart.com","jwt":"eyJhbGciOiAiUlNBLU9BRVAtMjU2IiwgImVuYyI6ICJBMjU2R0NNIn0.V4pUwsYBwyJZijaa9MXHAJV4Tp6zYHk8nxlbr33IUhldyVZeA5Ltial26lJ6wiD-jQs_xIeBYcXwSO5bx_iAXdmNAMDoYHGXToUIPiWOqvbiRT7DoyEgM2p5qLoK9JCE26o0wb6SNBTrb4HmD2KhSVTMQIyf-SFhjLkFPG_MJSliiUe1ED1zAd6iqP9tS16ftwc6auzsP7FMD1fKNwDSGLwGYVSGGFxuHr-g2AYmRrWXNDCpRQ_HV23LVLwY17P9_avtqrLHJhYGhl4x9rqjgvmdgwPNuAMEyZq-YDZ1vcqjfmBb0zNPCIB5YGU-52dYbR58LHBMDz1hEMm6A17B-w.ZLmy27__FXcpukd_.KQcq.uXoM_QRI9Io6_kec774AxA"}',
-  expiration: '0530',
+  callback_id: '2cc49987-e641-42f0-beb4-4f96e063b613',
   cardholder_name: 'AffirmInc testing profile',
   billing_address: { line1: '650 California St.', line2: '12th Floor', city: 'San Francisco', state: 'CA', zipcode: '94108' },
-  phone: 18554233729
+  phone: 18554233729,
+  paymentToken: '{"TSS-WMTEXT-CONSUMERID":"affirm.tss.stage.walmart.com","jwt":"eyJhbGciOiJSU0EtT0FFUC0yNTYiLCJlbmMiOiJBMjU2R0NNIiwia2lkIjoiM2UwZDYzNTlhMTkwMDIwYyJ9.dSnalidU_2G9q3PXOc6cwLK4FD51mUOrtbZB3NVpQKcjVkwR45cFYBH1V9MJSaAE-8z8xpB77usTIDsqreB3FEhJuDzTJvlU0Sln484FN5r-CLohEbZkuI4EG_d9q0jdzChL-uhQj6bOarj_-RN7OutpPgs0JRCYGrZMt2Ahrm5KfKxIwtpBXPl804xO6dBkuN_xrzzIbL9wHmkmCfLgKUVOKk7lt8P-hzcs-9gn2rMLrWRK1rDXTCKCV6G6U2a3XvaRKdxYs2337KGOI_-e785vYtTj8SMaW3EV8vA1Od2McOqtvlQ-7lG8xP6PbokpiMqkZ0bx4gjWpzA_WMXYiA.2NOxoo-388oLSDjm.xWbhasVOOAYljv1sPpZNAE06-cz2rNqc1jtG0xyQIjAFAZX2byTxJdZFvTIh2QrvGwst7qQFqQ28VLD6Qjr3JHMnbt_wDU9EdZZzyHEAub5ZzyVFc4V3rk3ssDtSbI5LwcrJBHJ_oJuGrzqknF24tzEJ.oQY9BWRP1e4MHas3zT5tBA"}'
 };
 
-// What the card looks like AFTER Sam's Club decrypts number & cvv via Walmart TSS
-// (illustrative test PAN — never a real card). expiration arrives in plaintext.
+// The plaintext payload that `paymentToken` decrypts to via Walmart TSS.
+// paymentToken is a TSS-encrypted (JWE) value of exactly this object.
+const DECRYPTED_PAYMENT_TOKEN = {
+  payment_method_details: {
+    expiration_month: '12',
+    expiration_year: '2028',
+    pan: '4111111111111111',
+    cvv: '123'
+  }
+};
+
+// The usable card AFTER Sam's Club decrypts paymentToken (illustrative test PAN —
+// never a real card).
 const DECRYPTED_CARD = {
-  number: '4111111111111111',
+  number: DECRYPTED_PAYMENT_TOKEN.payment_method_details.pan,
   cvv: '***',
-  expiration: '0530',
-  cardholder_name: 'AffirmInc testing profile',
-  charge_ari: 'MFFO-VIIT',
+  expiration: DECRYPTED_PAYMENT_TOKEN.payment_method_details.expiration_month
+    + DECRYPTED_PAYMENT_TOKEN.payment_method_details.expiration_year.slice(-2),
+  cardholder_name: CARD_RESPONSE.cardholder_name,
+  charge_ari: CARD_RESPONSE.charge_ari,
   billing_address: CARD_RESPONSE.billing_address
-};
-
-// The encrypted fields exactly as they arrive on the wire: number and cvv are
-// JSON strings carrying the TSS consumer id + the JWE (RSA-OAEP-256 + A256GCM);
-// expiration is plaintext. Reuses the canned Read Card values above.
-const ENCRYPTED_CARD_SAMPLE = {
-  number:     CARD_RESPONSE.number,
-  cvv:        CARD_RESPONSE.cvv,
-  expiration: CARD_RESPONSE.expiration
 };
 
 const CHECKOUT_PAYLOAD = {
@@ -987,13 +989,16 @@ async function runStep(step) {
       logApi({
         method: 'GET', endpoint: `/api/v2/cards/${state.checkoutId}`,
         response: CARD_RESPONSE, status: 200, durationMs: dt,
-        note: `VCN issued for the completed loan. number and cvv come back ENCRYPTED — each a JSON string of { TSS-WMTEXT-CONSUMERID, jwt } (JWE) for the Walmart TSS integration; expiration is plaintext. Sam's Club decrypts number & cvv next, before authorization. charge_ari=${CARD_RESPONSE.charge_ari}`,
+        note: `VCN issued for the completed loan. The card data comes back in paymentToken — a new Sam's Club-specific field that is a TSS-encrypted (JWE, RSA-OAEP-256 + A256GCM) JSON string of { TSS-WMTEXT-CONSUMERID, jwt }. Sam's Club decrypts it via Walmart TSS next to recover the payment_method_details (pan, cvv, expiration_month, expiration_year) before authorization. charge_ari=${CARD_RESPONSE.charge_ari}`,
         docs: [
           { label: 'Read Card Details', url: 'https://docs.affirm.com/developers/docs/read-card-details' },
           { label: 'Read Card API reference', url: 'https://docs.affirm.com/developers/v1.0-Global-Integration/reference/read_card' }
         ]
       });
-      logEvent('affirm', '◀ Affirm-BE returned encrypted VCN card details', 'number & cvv come back TSS-encrypted (JWE); expiration is plaintext. Sam\'s Club decrypts them via Walmart TSS next, before authorization.');
+      logBlock('affirm', 'ℹ️ paymentToken — new Sam\'s Club field (TSS-encrypted)',
+        DECRYPTED_PAYMENT_TOKEN,
+        'paymentToken is a new Sam\'s Club-specific field on the Read Card response. Its value is a Walmart TSS-encrypted (JWE) string that decrypts to exactly the payload shown above. Sam\'s Club decrypts it via TSS in the next step to obtain the usable card.');
+      logEvent('affirm', '◀ Affirm-BE returned encrypted VCN card details', 'Card data is delivered in the TSS-encrypted paymentToken field. Sam\'s Club decrypts it via Walmart TSS next, before authorization.');
       break;
     }
 
@@ -1001,11 +1006,15 @@ async function runStep(step) {
       logDivider('Walmart TSS · decrypt VCN');
       await sleep(300 + Math.random() * 250);
       const card = state.decrypted || {};
-      logBlock('payment', '🔓 Sam\'s Club decrypted the card via Walmart TSS', {
-        number: card.number ? maskPan(card.number) : '•••• •••• •••• ••••',
-        cvv: '***',
-        expiration: card.expiration || 'MMYY'
-      }, 'Decrypted on the Sam\'s Club backend (JWE → plaintext) using the TSS key. The usable virtual card is now ready to run through the existing card processor — no plaintext PAN is exposed to the frontend.', [
+      const pmd = DECRYPTED_PAYMENT_TOKEN.payment_method_details;
+      logBlock('payment', '🔓 Sam\'s Club decrypted paymentToken via Walmart TSS', {
+        payment_method_details: {
+          pan: card.number ? maskPan(card.number) : '•••• •••• •••• ••••',
+          cvv: '***',
+          expiration_month: pmd.expiration_month,
+          expiration_year: pmd.expiration_year
+        }
+      }, 'paymentToken (TSS-encrypted JWE) is decrypted on the Sam\'s Club backend to recover the payment_method_details payload. The usable virtual card is now ready to run through the existing card processor — no plaintext PAN is exposed to the frontend.', [
         { label: 'Read Card Details', url: 'https://docs.affirm.com/developers/docs/read-card-details' },
         { label: 'Managing Cards (VCN)', url: 'https://docs.affirm.com/developers/docs/managing-cards' }
       ]);
