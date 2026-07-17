@@ -141,6 +141,13 @@
   pre.code .n { color: #F78C6C; }
   .url-box { font-family: "SF Mono", Menlo, monospace; font-size: 11.5px; word-break: break-all; background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; padding: 9px 11px; color: var(--text); }
   .note { font-size: 12px; color: var(--muted); margin-top: 10px; }
+  .note a, .callout a { color: var(--affirm-accent); font-weight: 600; text-decoration: none; }
+  .note a:hover, .callout a:hover { text-decoration: underline; }
+  .callout { margin-top: 10px; padding: 12px 14px; border: 1px solid #DADAFB; background: #F6F6FE; border-radius: 10px; font-size: 12.5px; color: var(--text); }
+  .callout .h { font-weight: 800; color: var(--affirm-accent); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .callout ol { margin: 8px 0 0; padding-left: 18px; }
+  .callout li { margin: 4px 0; }
+  .callout code { background: #EEF1F6; border-radius: 4px; padding: 1px 5px; font-size: 11.5px; }
   .badge-live { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--success); }
   .badge-live .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
 
@@ -306,6 +313,45 @@
 
       <div class="note" id="apr-note"></div>
       <div class="note">The <code>monthlyPayment</code> shown to the member is the whole-dollar, rounded-up figure the JAR returns (per legal display rules). The CTA opens the JAR's <code>url</code> — Affirm's prequal / disclosure page — exactly as Walmart loads it in a learn-more modal.</div>
+
+      <div class="section-label">Re-creating the <span style="text-transform:none"><span class="apr-badge">0% APR</span></span> badge</div>
+      <div class="callout">
+        <div class="h">Recommended — let Affirm render it</div>
+        The indigo <b>0% APR</b> badge is <b>not something you build</b>. It ships with Affirm's
+        promotional-messaging script: drop in an As-Low-As element and load <code>affirm.js</code>.
+        When the configured promo is a 0% APR offer, Affirm automatically renders the badge and the
+        <i>"0% APR or as low as $X/mo with Affirm"</i> copy — no custom CSS or images on your side.
+        <ol>
+          <li>Add the placement where the message should appear (<code>data-amount</code> in cents):
+            <pre class="code" style="margin-top:6px"><span class="cmt">&lt;!-- cart total $998.00 → 99800 cents --&gt;</span>
+&lt;p <span class="k">class</span>=<span class="s">"affirm-as-low-as"</span> <span class="k">data-page-type</span>=<span class="s">"cart"</span> <span class="k">data-amount</span>=<span class="s">"99800"</span>&gt;&lt;/p&gt;</pre>
+          </li>
+          <li>Load Affirm's script once (it injects the badge + styles for you).</li>
+          <li>If the price changes dynamically, call <code>affirm.ui.refresh()</code> to re-render.</li>
+        </ol>
+        <div style="margin-top:8px">
+          Docs:
+          <a href="https://docs.affirm.com/developers/docs/set-up-promotional-messaging" target="_blank" rel="noopener">Set Up Promotional Messaging</a> ·
+          <a href="https://docs.affirm.com/developers/docs/html-reference-promotional-messaging" target="_blank" rel="noopener">HTML Reference (as-low-as)</a> ·
+          <a href="https://docs.affirm.com/developers/docs/manage-components" target="_blank" rel="noopener">Manage Components</a>
+        </div>
+      </div>
+
+      <div class="note">If you must render the badge yourself (e.g. a server-rendered surface that doesn't load <code>affirm.js</code>, like this demo), these are the exact styles Affirm ships — pulled from its messaging script (<code>.__apr_badge.__apr_badge_indigo</code>):</div>
+      <pre class="code"><span class="cmt">/* indigo "0% APR" badge — Affirm brand tokens */</span>
+.<span class="k">apr-badge</span> {
+  <span class="k">display</span>: inline-flex; <span class="k">align-items</span>: center; <span class="k">gap</span>: .25em;
+  <span class="k">height</span>: 1.5em; <span class="k">padding</span>: .125em .5em; <span class="k">border-radius</span>: .5em;
+  <span class="k">font-weight</span>: 500; <span class="k">vertical-align</span>: -0.12em;
+  <span class="k">background</span>: <span class="n">#e2e2ff</span>;  <span class="cmt">/* --bg-surface-brand-indigo */</span>
+  <span class="k">color</span>: <span class="n">#4242cf</span>;       <span class="cmt">/* --text-brand-indigo-oncolor */</span>
+}
+.<span class="k">apr-badge</span>::before {
+  <span class="k">content</span>: <span class="s">""</span>; <span class="k">width</span>: 1em; <span class="k">height</span>: 1em;
+  <span class="k">background</span>: no-repeat center/contain
+    <span class="s">url("https://cdn-assets.affirm.com/upfunnel/assets/zero_percent_badge_icon_indigo.svg")</span>;
+}</pre>
+      <div class="note">Icon assets: <a href="https://cdn-assets.affirm.com/upfunnel/assets/zero_percent_badge_icon_indigo.svg" target="_blank" rel="noopener">zero_percent_badge_icon_indigo.svg</a> (indigo) · <a href="https://cdn-assets.affirm.com/upfunnel/assets/zero_percent_badge_icon_black.svg" target="_blank" rel="noopener">zero_percent_badge_icon_black.svg</a> (neutral). Markup: <code>&lt;span class="apr-badge"&gt;0% APR&lt;/span&gt;</code>. Prefer the Affirm-rendered version above so styling and legal copy stay in sync automatically.</div>
     </div>
   </section>
 </main>
