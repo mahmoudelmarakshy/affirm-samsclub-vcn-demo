@@ -113,10 +113,10 @@
   .prog-caption { font-size: 12px; color: var(--muted); margin-top: 8px; }
   .prog-caption b { color: var(--text); }
   .affirm-msg .qualify {
-    display: inline-block; margin-top: 12px; background: var(--affirm-accent); color: #fff; text-decoration: none;
-    font-weight: 700; font-size: 14px; padding: 11px 18px; border-radius: 999px; cursor: pointer; border: 0;
+    color: var(--affirm-accent); text-decoration: underline; font-weight: 600; font-size: 15px;
+    cursor: pointer; background: none; border: 0; padding: 0; white-space: nowrap;
   }
-  .affirm-msg .qualify:hover { background: #3a3ad0; }
+  .affirm-msg .qualify:hover { color: #3a3ad0; text-decoration: underline; }
   .affirm-msg.ineligible { background: var(--panel-2); border-color: var(--border); }
   .affirm-msg .muted { color: var(--muted); font-size: 13px; }
 
@@ -467,9 +467,9 @@ function renderMessage(d) {
     ? APR_BADGE + ' or as low as <b class="amt">' + fmtInt(d.monthlyPayment) + '</b>/mo with ' + AFFIRM_LOGO + '.'
     : 'As low as <b class="amt">' + fmtInt(d.monthlyPayment) + '</b>/mo with ' + AFFIRM_LOGO + '.';
   box.innerHTML =
-    '<div class="line">' + line + '</div>' +
-    '<button class="qualify" id="qualify-btn">See if you qualify</button>';
-  $('#qualify-btn').addEventListener('click', () => openLearnMore(d.url));
+    '<div class="line">' + line +
+    ' <a class="qualify" id="qualify-btn" href="' + d.url + '">See if you qualify</a></div>';
+  $('#qualify-btn').addEventListener('click', (e) => { e.preventDefault(); openLearnMore(d.url); });
 }
 
 function renderBehindScenes(d) {
