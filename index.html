@@ -956,14 +956,14 @@ async function runStep(step) {
           { label: 'The Checkout Object', url: 'https://docs.affirm.com/developers/reference/the-checkout-object' }
         ]
       });
-      logBlock('affirm', '📋 Team action — set metadata.checkout_channel_type',
+      logBlock('affirm', '📋 Call out — set metadata.checkout_channel_type',
         {
           'metadata.checkout_channel_type': 'DWEB',
           sample_values: {
             MWEB: 'mobile web',
             DWEB: 'desktop web',
-            iOS: 'native iOS app',
-            ANDROID: 'native Android app'
+            iOS: 'iOS app',
+            ANDROID: 'Android app'
           }
         },
         'Integration team: include metadata.checkout_channel_type on every Direct Checkout, set to the channel the checkout originates from. Use one of the sample values above.',
