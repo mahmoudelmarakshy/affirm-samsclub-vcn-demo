@@ -315,12 +315,12 @@
       <div class="note">The <code>monthlyPayment</code> shown to the member is the whole-dollar, rounded-up figure the JAR returns (per legal display rules). The CTA opens the JAR's <code>url</code> — Affirm's prequal / disclosure page — exactly as Walmart loads it in a learn-more modal.</div>
 
       <div id="badge-note">
-      <div class="section-label">Rendering the <span style="text-transform:none"><span class="apr-badge">0% APR</span></span> badge yourself</div>
+      <div class="section-label">Rendering the <span style="text-transform:none"><span class="apr-badge">0% APR</span></span> badge merchant-side</div>
       <div class="callout">
-        <div class="h">Self-rendered — you own the markup</div>
+        <div class="h">Merchant-rendered markup</div>
         Sam's Club builds the As-Low-As copy <b>server-side</b> from the APR Calculator JAR and renders it
-        in its own storefront, without loading Affirm's <code>affirm.js</code> messaging script. So you
-        render the badge in your own HTML. Everything you need is below — this is exactly what this demo uses.
+        in its own storefront, without loading Affirm's <code>affirm.js</code> messaging script. The badge
+        is rendered directly in the storefront HTML. Everything needed is below — this is exactly what this demo uses.
       </div>
 
       <div class="note"><b>1 · Markup</b> — put the badge span at the front of the ALA line:</div>
@@ -344,7 +344,7 @@
 
       <div class="note"><b>3 · Icon</b> — load from Affirm's CDN (above), or <b>inline the SVG</b> to avoid any external request (this demo inlines it as a <code>data:</code> URI). Assets: <a href="https://cdn-assets.affirm.com/upfunnel/assets/zero_percent_badge_icon_indigo.svg" target="_blank" rel="noopener">zero_percent_badge_icon_indigo.svg</a> (indigo) · <a href="https://cdn-assets.affirm.com/upfunnel/assets/zero_percent_badge_icon_black.svg" target="_blank" rel="noopener">zero_percent_badge_icon_black.svg</a> (neutral, for light backgrounds).</div>
 
-      <div class="note" style="margin-top:12px">Only relevant if you later adopt Affirm's script: loading <code>affirm.js</code> + an <code>&lt;p class="affirm-as-low-as"&gt;</code> element makes Affirm render this badge and copy automatically. Docs: <a href="https://docs.affirm.com/developers/docs/set-up-promotional-messaging" target="_blank" rel="noopener">Set Up Promotional Messaging</a> · <a href="https://docs.affirm.com/developers/docs/html-reference-promotional-messaging" target="_blank" rel="noopener">HTML Reference</a>.</div>
+      <div class="note" style="margin-top:12px">Alternative approach: adopting Affirm's script — loading <code>affirm.js</code> + an <code>&lt;p class="affirm-as-low-as"&gt;</code> element makes Affirm render this badge and copy automatically. Docs: <a href="https://docs.affirm.com/developers/docs/set-up-promotional-messaging" target="_blank" rel="noopener">Set Up Promotional Messaging</a> · <a href="https://docs.affirm.com/developers/docs/html-reference-promotional-messaging" target="_blank" rel="noopener">HTML Reference</a>.</div>
       </div>
     </div>
   </section>
