@@ -87,7 +87,7 @@
   }
   .affirm-msg .line { font-size: 15px; color: var(--affirm-black); line-height: 1.5; }
   .affirm-msg .line b { font-weight: 800; }
-  .affirm-msg .amt { color: var(--affirm-accent); }
+  .affirm-msg .amt { color: var(--affirm-black); }
   .affirm-msg .afm-word { font-weight: 800; }
   .afm-logo { height: 20px; width: auto; vertical-align: -1px; }
 
@@ -498,9 +498,9 @@ function renderBehindScenes(d) {
       url: d.url
     });
     $('#flow-msg').innerHTML = (d.hasZero
-      ? APR_BADGE + ' or as low as <b>' + fmtInt(d.monthlyPayment) + '</b>/mo'
-      : 'As low as <b>' + fmtInt(d.monthlyPayment) + '</b>/mo') +
-      ' with ' + AFFIRM_LOGO + '. <b>See if you qualify</b>';
+      ? APR_BADGE + ' or as low as ' + fmtInt(d.monthlyPayment) + '/mo'
+      : 'As low as ' + fmtInt(d.monthlyPayment) + '/mo') +
+      ' with ' + AFFIRM_LOGO + '. <span style="text-decoration:underline">See if you qualify</span>';
   } else {
     $('#flow-call').textContent = '(not called — cart outside configured bands)';
     $('#flow-payload').textContent = '{ "eligible": false }';
