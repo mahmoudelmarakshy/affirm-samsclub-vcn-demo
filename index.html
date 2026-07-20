@@ -693,7 +693,13 @@ const CHECKOUT_PAYLOAD = {
     PLUS10: { discount_amount: 1000, discount_display_name: 'Plus Member 10% off Electronics' },
     INSTANTSAVINGS50: { discount_amount: 5000, discount_display_name: 'Instant Savings - $50 off TV' }
   },
-  metadata: { platform_type: 'samsclub-web', shipping_type: "Sam's Club Free Shipping for Plus", membership_tier: 'Plus' },
+  metadata: {
+    platform_type: 'samsclub-web',
+    shipping_type: "Sam's Club Free Shipping for Plus",
+    membership_tier: 'Plus',
+    // checkout_channel_type — originating channel; set per request. Sample values: MWEB | DWEB | iOS | ANDROID
+    checkout_channel_type: 'DWEB'
+  },
   order_id: 'SAMS-JKLMO4321',
   shipping_amount: 0,
   tax_amount: 7820,
@@ -950,6 +956,21 @@ async function runStep(step) {
           { label: 'The Checkout Object', url: 'https://docs.affirm.com/developers/reference/the-checkout-object' }
         ]
       });
+      logBlock('affirm', '📋 Team action — set metadata.checkout_channel_type',
+        {
+          'metadata.checkout_channel_type': 'DWEB',
+          sample_values: {
+            MWEB: 'mobile web',
+            DWEB: 'desktop web',
+            iOS: 'native iOS app',
+            ANDROID: 'native Android app'
+          }
+        },
+        'Integration team: include metadata.checkout_channel_type on every Direct Checkout, set to the channel the checkout originates from. Use one of the sample values above.',
+        [
+          { label: 'The Metadata Object', url: 'https://docs.affirm.com/developers/reference/the-metadata-object' },
+          { label: 'The Checkout Object', url: 'https://docs.affirm.com/developers/reference/the-checkout-object' }
+        ]);
       break;
     }
 
