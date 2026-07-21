@@ -324,7 +324,7 @@
       </div>
 
       <div class="note"><b>1 · Markup</b> — put the badge span at the front of the ALA line:</div>
-      <pre class="code"><span class="cmt">&lt;!-- "0% APR or as low as $88/mo with Affirm. See if you qualify" --&gt;</span>
+      <pre class="code"><span class="cmt">&lt;!-- "0% APR or as low as $88/mo with Affirm. Learn more" --&gt;</span>
 &lt;<span class="k">span</span> <span class="k">class</span>=<span class="s">"apr-badge"</span>&gt;0% APR&lt;/<span class="k">span</span>&gt; or as low as &lt;<span class="k">b</span>&gt;$88&lt;/<span class="k">b</span>&gt;/mo with &lt;<span class="k">Affirm logo</span>&gt;.</pre>
 
       <div class="note"><b>2 · CSS</b> — the exact styles Affirm ships (from <code>.__apr_badge.__apr_badge_indigo</code>):</div>
@@ -461,14 +461,14 @@ function renderMessage(d) {
   }
   box.classList.remove('ineligible');
   lastUrl = d.url;
-  // IB program:        "As low as $X/mo with Affirm. See if you qualify"
-  // 0% APR campaign:   "[0% APR badge] or as low as $X/mo with Affirm. See if you qualify"
+  // IB program:        "As low as $X/mo with Affirm. Learn more"
+  // 0% APR campaign:   "[0% APR badge] or as low as $X/mo with Affirm. Learn more"
   const line = d.hasZero
     ? APR_BADGE + ' or as low as <span class="amt">' + fmtInt(d.monthlyPayment) + '</span>/mo with ' + AFFIRM_LOGO + '.'
     : 'As low as <span class="amt">' + fmtInt(d.monthlyPayment) + '</span>/mo with ' + AFFIRM_LOGO + '.';
   box.innerHTML =
     '<div class="line">' + line +
-    ' <a class="qualify" id="qualify-btn" href="' + d.url + '">See if you qualify</a></div>';
+    ' <a class="qualify" id="qualify-btn" href="' + d.url + '">Learn more</a></div>';
   $('#qualify-btn').addEventListener('click', (e) => { e.preventDefault(); openLearnMore(d.url); });
 }
 
@@ -500,7 +500,7 @@ function renderBehindScenes(d) {
     $('#flow-msg').innerHTML = (d.hasZero
       ? APR_BADGE + ' or as low as ' + fmtInt(d.monthlyPayment) + '/mo'
       : 'As low as ' + fmtInt(d.monthlyPayment) + '/mo') +
-      ' with ' + AFFIRM_LOGO + '. <span style="text-decoration:underline">See if you qualify</span>';
+      ' with ' + AFFIRM_LOGO + '. <span style="text-decoration:underline">Learn more</span>';
   } else {
     $('#flow-call').textContent = '(not called — cart outside configured bands)';
     $('#flow-payload').textContent = '{ "eligible": false }';
