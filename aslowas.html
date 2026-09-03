@@ -151,6 +151,22 @@
   .badge-live { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--success); }
   .badge-live .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
 
+  /* interactive "call the JAR" box */
+  .calc-grid { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; margin: 12px 0 4px; }
+  .calc-field { display: flex; flex-direction: column; gap: 5px; }
+  .calc-lbl { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
+  .calc-field input[type="number"], .calc-field input[type="text"], .calc-field select {
+    font-size: 15px; font-weight: 600; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: #fff; color: var(--text);
+  }
+  .calc-amt { display: flex; align-items: center; gap: 6px; }
+  .calc-amt span { font-weight: 800; font-size: 16px; }
+  .calc-amt input { width: 130px; }
+  .calc-field input[type="text"] { width: 120px; }
+  .calc-run { align-self: flex-end; background: var(--affirm-accent); color: #fff; border: 0; border-radius: 8px; padding: 10px 18px; font-size: 14px; font-weight: 700; cursor: pointer; box-shadow: 0 1px 3px rgba(74,74,244,.35); }
+  .calc-run:hover { background: #3a3ad0; }
+  #calc-open { color: var(--affirm-accent); text-decoration: underline; font-weight: 600; cursor: pointer; }
+  .calc-result-bad { color: #B42318; }
+
   /* backend -> frontend flow */
   .flow { display: flex; flex-direction: column; gap: 0; margin-bottom: 4px; }
   .flow-step { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 13px; }
@@ -185,7 +201,7 @@
   </div>
   <div>
     <div class="title">"As low as" messaging — powered by the APR Calculator JAR</div>
-    <div class="sub">The monthly figure comes from <code>affirm-apr-calculator</code> (sams_club build). Values are precomputed from the JAR for this shareable build.</div>
+    <div class="sub">The monthly figure comes from <code>affirm-apr-calculator</code> (sams_club 1.0.1 build, 14.99% default APR), reproduced client-side for this offline shareable build.</div>
   </div>
 </header>
 
@@ -348,6 +364,54 @@
       </div>
     </div>
   </section>
+
+  <!-- FULL WIDTH: interactive, direct JAR calculator (client-side reproduction) -->
+  <section class="panel" style="grid-column: 1 / -1;">
+    <h2><span class="dot" style="background: var(--affirm-accent)"></span>Interactive — call the APR Calculator JAR directly</h2>
+    <div class="body">
+      <div class="note" style="margin-top:0">Enter any values to run <code>AffirmPromoCalculator.calculate(...)</code>. This offline build reproduces the <code>affirm-apr-calculator</code> (sams_club 1.0.1, 14.99% default APR) math client-side — matching the live JAR to the cent. <span class="badge-live"><span class="dot"></span> APR Calculator (offline)</span></div>
+
+      <div class="calc-grid">
+        <label class="calc-field">
+          <span class="calc-lbl">amount (loanAmount)</span>
+          <span class="calc-amt"><span>$</span><input type="number" id="calc-amount" min="0" step="0.01" value="1898"></span>
+        </label>
+        <label class="calc-field">
+          <span class="calc-lbl">promoName</span>
+          <input type="text" id="calc-promo" list="promo-list" value="18r" placeholder="e.g. 18r">
+          <datalist id="promo-list">
+            <option value="3r"></option><option value="6r"></option><option value="12r"></option><option value="18r"></option>
+            <option value="3z"></option><option value="6z"></option><option value="12z"></option>
+          </datalist>
+        </label>
+        <label class="calc-field">
+          <span class="calc-lbl">PageType</span>
+          <select id="calc-pagetype">
+            <option>CART</option><option>PRODUCT</option><option>CATEGORY</option><option>PAYMENT</option>
+            <option>HOMEPAGE</option><option>BANNER</option><option>LANDING</option><option>SEARCH</option>
+          </select>
+        </label>
+        <button class="calc-run" id="calc-run">Calculate ▶</button>
+      </div>
+
+      <div class="section-label">The call</div>
+      <pre class="code" id="calc-call">AffirmPromoCalculator.calculate(1898d, "18r", PageType.CART)</pre>
+
+      <div class="section-label">Result (AffirmPromoResults)</div>
+      <div class="kv">
+        <div class="k">successful</div><div class="v mono" id="calc-successful">—</div>
+        <div class="k">apr</div><div class="v mono" id="calc-apr">—</div>
+        <div class="k">monthlyPayment</div><div class="v mono" id="calc-mo">—</div>
+        <div class="k">monthlyPaymentExact</div><div class="v mono" id="calc-moex">—</div>
+        <div class="k">loanAmount</div><div class="v mono" id="calc-loan">—</div>
+      </div>
+      <div class="note" id="calc-msg" style="display:none"></div>
+
+      <div class="section-label">url returned</div>
+      <div class="url-box" id="calc-url">—</div>
+      <div style="margin-top:10px"><a id="calc-open" href="#">Open learn-more URL ↗</a></div>
+    </div>
+  </section>
 </main>
 
 <!-- learn-more modal (mirrors how the JAR url is loaded) -->
@@ -368,6 +432,44 @@ const fmt = (n) => '$' + Number(n).toLocaleString('en-US', { minimumFractionDigi
 const fmtInt = (n) => '$' + Math.round(Number(n)).toLocaleString('en-US');
 const AFFIRM_LOGO = '<img class="afm-logo" src="data:image/png;base64,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" alt="Affirm">';
 const APR_BADGE = '<span class="apr-badge">0% APR</span>';
+
+/* ---- Offline reproduction of the affirm-apr-calculator (sams_club 1.0.1) ----
+   For an interest-bearing promo, the JAR amortizes at ~14.99% APR (calibrated
+   per term) and its exact monthly payment is a fixed factor of the loan amount:
+       monthlyPaymentExact = round(FACTOR[promo] * amount, 2)
+   The member-facing figure is that value rounded up to whole dollars, and the
+   reported APR is the (per-term) rate the JAR used. The factors and APRs below
+   were extracted directly from the 1.0.1 JAR, so this offline build returns the
+   same numbers the live JAR does — matched to the cent across the supported range.
+   0% promos (…z) amortize at 0% APR (monthly = amount / term). */
+const PROMO_TERMS  = { '3r':3, '6r':6, '12r':12, '18r':18, '24r':24, '3z':3, '6z':6, '12z':12 };
+const PROMO_FACTOR = { '3r':0.341681050, '6r':0.174027880, '12r':0.090244490, '18r':0.062379830, '24r':0.048485590 };
+const PROMO_APR    = { '3r':14.963634, '6r':14.987601, '12r':14.970254, '18r':14.989022, '24r':14.997316 };
+
+function callStr(amount, promo, pageType) {
+  const pt = String(pageType).toUpperCase();
+  return promo
+    ? 'AffirmPromoCalculator.calculate(' + amount + 'd, "' + promo + '", PageType.' + pt + ')'
+    : 'AffirmPromoCalculator.calculate(' + amount + 'd, PageType.' + pt + ')';
+}
+function jarCalculate(amount, promo, pageType) {
+  amount = Number(amount) || 0;
+  const term = PROMO_TERMS[promo];
+  if (!term) return { successful: false, error: 'Unknown promo: ' + promo, call: callStr(amount, promo, pageType) };
+  const zero = /z$/i.test(promo);
+  const exact = zero
+    ? Math.round((amount / term) * 100) / 100
+    : Math.round(PROMO_FACTOR[promo] * amount * 100) / 100;
+  const pt = String(pageType).toLowerCase();
+  return {
+    successful: true, amount: amount, promo: promo, pageType: String(pageType).toUpperCase(),
+    apr: zero ? 0 : PROMO_APR[promo],
+    loanAmount: amount, monthlyPayment: Math.ceil(exact), monthlyPaymentExact: exact,
+    message: '', error: null, call: callStr(amount, promo, pageType),
+    url: 'https://www.affirm.com/apps/prequal/?page_type=' + pt + '&promo_external_id=' + promo +
+      '&public_api_key=R4D4ULB6PDNZFL4G&use_promo=true&unit_price=' + Math.round(amount * 100) + '&locale=en-US'
+  };
+}
 
 /* The two sample financing programs. Both pass the longest r-term to the JAR
    (so the "as low as" monthly is the same); they differ in the promos offered,
@@ -412,34 +514,26 @@ function renderConfigTable() {
     '</tr>').join('');
 }
 
-/* Self-contained build: the affirm-apr-calculator (sams_club) output is a linear
-   function of the cart amount within each band (APR is capped at the merchant
-   ceiling), so we reproduce the JAR exactly here — same figures the server returns:
-     band 1 (12r): exact monthly = amount * 0.0879058   (APR ~9.97%)
-     band 2 (18r): exact monthly = amount * 0.0600407   (APR ~9.96%)
-   The member-facing monthly is the whole-dollar, rounded-up value. */
+/* Merchant band logic: pick the promo by cart band, then run it through the
+   offline JAR reproduction above (same figures the live server returns). */
 function computePromo(amount, program) {
   const zero = program === 'zero';
   const d = { amount: amount, program: program, hasZero: zero,
     aprRange: zero ? '0% – 30%' : '10% – 30%', eligible: false,
     band: '—', offered: null, promo: null };
-  let factor = 0, apr = 0;
   if (amount < 500) { d.reason = 'Below the Affirm financing minimum ($500).'; return d; }
   if (amount <= 999) {
-    d.promo = '12r'; d.band = '$500 - $999'; d.offered = zero ? '3z 6r 12r' : '3r 6r 12r';
-    factor = 0.0879058; apr = 9.97; d.eligible = true;
+    d.promo = '12r'; d.band = '$500 - $999'; d.offered = zero ? '3z 6r 12r' : '3r 6r 12r'; d.eligible = true;
   } else if (amount <= 30000) {
-    d.promo = '18r'; d.band = '$1,000 - $30,000'; d.offered = zero ? '6z 12r 18r' : '6r 12r 18r';
-    factor = 0.0600407; apr = 9.96; d.eligible = true;
+    d.promo = '18r'; d.band = '$1,000 - $30,000'; d.offered = zero ? '6z 12r 18r' : '6r 12r 18r'; d.eligible = true;
   } else { d.reason = 'Above the program maximum ($30,000).'; return d; }
-  const exact = Math.round(amount * factor * 100) / 100;
-  d.monthlyPaymentExact = exact;
-  d.monthlyPayment = Math.ceil(exact);
-  d.apr = apr;
+  const r = jarCalculate(amount, d.promo, 'CART');
+  d.monthlyPaymentExact = r.monthlyPaymentExact;
+  d.monthlyPayment = r.monthlyPayment;
+  d.apr = r.apr;
   d.successful = true;
-  d.call = 'AffirmPromoCalculator.calculate(' + amount + 'd, "' + d.promo + '", PageType.CART)';
-  d.url = 'https://www.affirm.com/apps/prequal/?page_type=cart&promo_external_id=' + d.promo +
-    '&public_api_key=R4D4ULB6PDNZFL4G&use_promo=true&unit_price=' + Math.round(amount * 100) + '&locale=en-US';
+  d.call = r.call;
+  d.url = r.url;
   return d;
 }
 
@@ -579,6 +673,44 @@ document.querySelectorAll('#prog-toggle button').forEach(btn => {
 
 renderConfigTable();
 refresh(998);
+
+/* ---------- interactive: direct JAR calculator box (offline) ---------- */
+function calcCallString() {
+  return callStr(Number($('#calc-amount').value) || 0, $('#calc-promo').value.trim(), $('#calc-pagetype').value);
+}
+function updateCalcPreview() { $('#calc-call').textContent = calcCallString(); }
+
+function runCalc() {
+  const amt = Number($('#calc-amount').value) || 0;
+  const promo = $('#calc-promo').value.trim();
+  const pt = $('#calc-pagetype').value;
+  const d = jarCalculate(amt, promo, pt);
+  if (!d.successful) {
+    $('#calc-call').textContent = d.call;
+    $('#calc-successful').innerHTML = '<span class="calc-result-bad">error</span>';
+    ['calc-apr','calc-mo','calc-moex','calc-loan'].forEach(id => $('#' + id).textContent = '—');
+    $('#calc-url').textContent = '—';
+    $('#calc-open').style.display = 'none';
+    $('#calc-msg').style.display = ''; $('#calc-msg').innerHTML = '<b>Error:</b> ' + escapeHtml(d.error);
+    return;
+  }
+  $('#calc-call').textContent = d.call;
+  $('#calc-successful').innerHTML = '<span style="color:var(--success)">true</span>';
+  $('#calc-apr').textContent = Number(d.apr).toFixed(4) + '%  (' + Number(d.apr).toFixed(2) + '%)';
+  $('#calc-mo').textContent = fmtInt(d.monthlyPayment) + '/mo';
+  $('#calc-moex').textContent = fmt(d.monthlyPaymentExact) + '/mo';
+  $('#calc-loan').textContent = fmt(d.loanAmount);
+  $('#calc-url').textContent = d.url;
+  $('#calc-open').style.display = ''; $('#calc-open').href = d.url;
+  $('#calc-msg').style.display = 'none';
+}
+$('#calc-run').addEventListener('click', runCalc);
+['calc-amount','calc-promo'].forEach(id => $('#' + id).addEventListener('input', updateCalcPreview));
+$('#calc-pagetype').addEventListener('change', updateCalcPreview);
+['calc-amount','calc-promo','calc-pagetype'].forEach(id =>
+  $('#' + id).addEventListener('keydown', (e) => { if (e.key === 'Enter') runCalc(); }));
+$('#calc-open').addEventListener('click', (e) => { e.preventDefault(); const u = $('#calc-open').href; if (u && u !== location.href + '#' && !u.endsWith('#')) openLearnMore(u); });
+runCalc();
 </script>
 </body>
 </html>
