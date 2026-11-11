@@ -480,8 +480,9 @@ const PROGRAMS = {
     caption: 'Regular interest-bearing promos only. Message: <b>“As low as $x/mo with Affirm.”</b>',
     hasZero: false,
     bands: [
-      { band: '1', size: '$500 – $999',      offered: ['3r','6r','12r'], apr: '10% – 30%', promo: '12r' },
-      { band: '2', size: '$1,000 – $30,000', offered: ['6r','12r','18r'], apr: '10% – 30%', promo: '18r' }
+      { band: '1', size: '$500 – $699.99',    offered: ['3r','6r','12r'],  apr: '10% – 30%', promo: '12r' },
+      { band: '2', size: '$700 – $1,699.99',  offered: ['3r','12r','18r'], apr: '10% – 30%', promo: '18r' },
+      { band: '3', size: '$1,700 – $30,000',  offered: ['6r','12r','24r'], apr: '10% – 30%', promo: '24r' }
     ]
   },
   zero: {
@@ -489,8 +490,9 @@ const PROGRAMS = {
     caption: 'Adds a 0% APR promo to each band. Message: <b>“0% APR or as low as $x/mo with Affirm.”</b>',
     hasZero: true,
     bands: [
-      { band: '1', size: '$500 – $999',      offered: ['3z','6r','12r'], apr: '0% – 30%', promo: '12r' },
-      { band: '2', size: '$1,000 – $30,000', offered: ['6z','12r','18r'], apr: '0% – 30%', promo: '18r' }
+      { band: '1', size: '$500 – $699.99',    offered: ['3z','6r','12r'],  apr: '0% – 30%', promo: '12r' },
+      { band: '2', size: '$700 – $1,699.99',  offered: ['3z','12r','18r'], apr: '0% – 30%', promo: '18r' },
+      { band: '3', size: '$1,700 – $30,000',  offered: ['6z','12r','24r'], apr: '0% – 30%', promo: '24r' }
     ]
   }
 };
@@ -522,10 +524,12 @@ function computePromo(amount, program) {
     aprRange: zero ? '0% – 30%' : '10% – 30%', eligible: false,
     band: '—', offered: null, promo: null };
   if (amount < 500) { d.reason = 'Below the Affirm financing minimum ($500).'; return d; }
-  if (amount <= 999) {
-    d.promo = '12r'; d.band = '$500 - $999'; d.offered = zero ? '3z 6r 12r' : '3r 6r 12r'; d.eligible = true;
+  if (amount < 700) {
+    d.promo = '12r'; d.band = '$500 - $699.99'; d.offered = zero ? '3z 6r 12r' : '3r 6r 12r'; d.eligible = true;
+  } else if (amount < 1700) {
+    d.promo = '18r'; d.band = '$700 - $1,699.99'; d.offered = zero ? '3z 12r 18r' : '3r 12r 18r'; d.eligible = true;
   } else if (amount <= 30000) {
-    d.promo = '18r'; d.band = '$1,000 - $30,000'; d.offered = zero ? '6z 12r 18r' : '6r 12r 18r'; d.eligible = true;
+    d.promo = '24r'; d.band = '$1,700 - $30,000'; d.offered = zero ? '6z 12r 24r' : '6r 12r 24r'; d.eligible = true;
   } else { d.reason = 'Above the program maximum ($30,000).'; return d; }
   const r = jarCalculate(amount, d.promo, 'CART');
   d.monthlyPaymentExact = r.monthlyPaymentExact;
@@ -578,7 +582,7 @@ function renderBehindScenes(d) {
   // highlight the active band row
   document.querySelectorAll('#cfg-table tbody tr').forEach(tr => {
     const b = tr.getAttribute('data-band');
-    const on = (d.eligible && ((b === '1' && d.promo === '12r') || (b === '2' && d.promo === '18r')));
+    const on = (d.eligible && ({ '12r': '1', '18r': '2', '24r': '3' }[d.promo] === b));
     tr.classList.toggle('active', on);
   });
 
